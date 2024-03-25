@@ -49,6 +49,12 @@ const loginUser = async (req, res) => {
   }
 };
 
+// Logout user
+const logoutUser = async (req, res) => {
+  res.clearCookie('token'); // Clear the token cookie
+  res.status(200).json({ message: 'Logout successful' });
+};
+
 // Get all users (without authentication)
 const getAllUsers = async (req, res) => {
   try {
@@ -81,5 +87,5 @@ const checkAuth = async (req, res) => {
   }
 };
 
+module.exports = { registerUser, loginUser, logoutUser, checkAuth, getAllUsers };
 
-module.exports = { registerUser, loginUser, checkAuth,getAllUsers };

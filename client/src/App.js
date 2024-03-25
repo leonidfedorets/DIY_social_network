@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AuthProvider } from './context/AuthContext';
 import AuthContainer from './components/AuthContainer';
 import styled from 'styled-components';
@@ -8,9 +8,10 @@ import Avatar from './components/Avatar';
 import LogoutButton from './components/LogoutButton';
 import Login from './components/Login';
 import Register from './components/Register';
-import Button from './components/Button'; // New import for Button
-import Menu from './components/Menu'; // New import for Menu
-import Users from './components/Users'; // New import for Users
+import Button from './components/Button';
+import Menu from './components/Menu';
+import Users from './components/Users';
+import axios from 'axios';
 
 const AppContainer = styled.div`
   font-family: Arial, sans-serif;
@@ -43,12 +44,20 @@ const App = () => {
   };
 
   const handleRegisterSuccess = () => {
-    setShowLogin(true); // Automatically open login popup after successful registration
+    setShowLogin(true);
     setShowRegister(false);
   };
 
-  const handleLogout = () => {
-    setUser(null);
+  const handleLogout = async () => {
+    try {
+      await axios.get('http://localhost:4000/api/users/logout');
+      setUser(null);
+      localStorage.removeItem('token');
+      delete axios.defaults.headers.common['Authorization'];
+    } catch (error) {
+      console.error('Error logging out:', error);
+      throw error;
+    }
   };
 
   const handleHomeClick = () => {
@@ -70,6 +79,28 @@ const App = () => {
   const handleSettingsClick = () => {
     // Implement logic for Settings click
   };
+
+  useEffect(() => {
+    const loadUser = async () => {
+      const token = localStorage.getItem('token');
+  
+      if (token) {
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  
+        try {
+          const response = await axios.get('http://localhost:4000/api/users/check-auth');
+          setUser(response.data.user);
+        } catch (error) {
+          console.error('Error checking authentication:', error);
+          setUser(null);
+          localStorage.removeItem('token');
+          delete axios.defaults.headers.common['Authorization'];
+        }
+      }
+    };
+    
+    loadUser();
+  }, []);
 
   return (
     <AppContainer>
@@ -112,4 +143,3 @@ const App = () => {
 };
 
 export default App;
-

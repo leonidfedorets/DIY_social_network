@@ -14,8 +14,8 @@ const PostForm = () => {
   const [success, setSuccess] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadedFiles, setUploadedFiles] = useState([]);
-
-  const { user } = useAuth();
+  
+  const { user, token } = useAuth();
 
   const handleTitleChange = (e) => {
     setTitle(e.target.value);
@@ -36,9 +36,7 @@ const PostForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const token = localStorage.getItem('token');
-
-    if (!user || !user.username || !token) {
+    if (!user || !token) {
       setError('User not authenticated. Please log in.');
       return;
     }
@@ -57,7 +55,7 @@ const PostForm = () => {
     const config = {
       headers: {
         'Content-Type': 'multipart/form-data',
-        Authorization: `Bearer ${token}`, // Include the token in the headers
+        Authorization: `Bearer ${token}`,
       },
       onUploadProgress: (progressEvent) => {
         const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
@@ -76,7 +74,7 @@ const PostForm = () => {
       setDescription('');
       setInstructions('');
       setFiles([]);
-      setUploadProgress(0); // Reset progress after successful upload
+      setUploadProgress(0);
     } catch (error) {
       console.error('Error submitting post:', error);
       setError('Failed to submit post');
@@ -188,4 +186,6 @@ const UploadedFilesContainer = styled.div`
 `;
 
 export default PostForm;
+
+
 

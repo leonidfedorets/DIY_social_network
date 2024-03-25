@@ -6,45 +6,55 @@ const AuthContext = createContext();
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
-  // Check if the user is logged in
-  const checkAuth = async () => {
+  const loadUser = async () => {
     const token = localStorage.getItem('token');
+
     if (token) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
       try {
-        const response = await axios.get('http://localhost:4000/api/users/check-auth', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (response.data.user) {
-          setUser(response.data.user);
-        }
+        const response = await axios.get('http://localhost:4000/api/users/check-auth');
+        setUser(response.data.user);
       } catch (error) {
-        if (error.response.status === 401) {
-          // Token is invalid or user is not authenticated
-          setUser(null);
-          localStorage.removeItem('token');
-        } else {
-          console.error('Error checking authentication:', error);
-          setUser(null); // Set user to null if any other error occurs
-        }
+        console.error('Error checking authentication:', error);
+        setUser(null);
+        localStorage.removeItem('token');
+        delete axios.defaults.headers.common['Authorization'];
       }
     }
   };
 
   useEffect(() => {
-    checkAuth();
-  }, []);
+    loadUser(); // Call loadUser on mount
+  }, []); // Add loadUser to dependency array
 
   const login = async (username, password) => {
     try {
       const response = await axios.post('http://localhost:4000/api/users/login', { username, password }, {
         withCredentials: true,
       });
-      setUser(response.data.user);
-      localStorage.setItem('token', response.data.token); // Store token in local storage
+      const { user, token } = response.data;
+
+      setUser(user);
+      localStorage.setItem('token', token);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+      return user;
     } catch (error) {
       console.error('Error logging in:', error);
+      throw error;
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await axios.get('http://localhost:4000/api/users/logout');
+      setUser(null);
+      localStorage.removeItem('token');
+      delete axios.defaults.headers.common['Authorization'];
+    } catch (error) {
+      console.error('Error logging out:', error);
+      throw error;
     }
   };
 
@@ -59,20 +69,8 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = async () => {
-    try {
-      await axios.post('http://localhost:4000/api/users/logout', {}, {
-        withCredentials: true,
-      });
-      setUser(null);
-      localStorage.removeItem('token'); // Remove token from local storage on logout
-    } catch (error) {
-      console.error('Error logging out:', error);
-    }
-  };
-
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, checkAuth }}>
+    <AuthContext.Provider value={{ user, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
