@@ -6,39 +6,42 @@ const AuthContext = createContext();
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
-  const loadUser = async () => {
-    const token = localStorage.getItem('token');
-
-    if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-
-      try {
-        const response = await axios.get('http://localhost:4000/api/users/check-auth');
-        setUser(response.data.user);
-      } catch (error) {
-        console.error('Error checking authentication:', error);
-        setUser(null);
-        localStorage.removeItem('token');
-        delete axios.defaults.headers.common['Authorization'];
-      }
-    }
-  };
-
   useEffect(() => {
-    loadUser(); // Call loadUser on mount
-  }, []); // Add loadUser to dependency array
-
+    const loadUser = async () => {
+      const token = localStorage.getItem('token');
+  
+      if (token) {
+        axios.defaults.withCredentials = true; // Add this line
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        console.log('Axios headers:', axios.defaults.headers);
+  
+        try {
+          const response = await axios.get('http://localhost:4000/api/users/check-auth');
+          setUser(response.data.user);
+        } catch (error) {
+          console.error('Error checking authentication:', error);
+          setUser(null);
+          localStorage.removeItem('token');
+          delete axios.defaults.headers.common['Authorization'];
+        }
+      }
+    };
+  
+    loadUser();
+  }, []);
+  
   const login = async (username, password) => {
     try {
       const response = await axios.post('http://localhost:4000/api/users/login', { username, password }, {
         withCredentials: true,
       });
       const { user, token } = response.data;
-
+  
       setUser(user);
       localStorage.setItem('token', token);
+      console.log('Token stored:', token); // Log the token here
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-
+  
       return user;
     } catch (error) {
       console.error('Error logging in:', error);

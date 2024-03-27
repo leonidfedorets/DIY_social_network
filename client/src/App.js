@@ -12,11 +12,18 @@ import Button from './components/Button';
 import Menu from './components/Menu';
 import Users from './components/Users';
 import axios from 'axios';
+import Footer from './components/Footer';
 
 const AppContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
   font-family: Arial, sans-serif;
+`;
+
+const MainContent = styled.div`
+  flex-grow: 1;
   padding: 20px;
-  position: relative;
 `;
 
 const App = () => {
@@ -86,6 +93,7 @@ const App = () => {
   
       if (token) {
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        console.log('Axios headers:', axios.defaults.headers); // Log the headers
   
         try {
           const response = await axios.get('http://localhost:4000/api/users/check-auth');
@@ -126,17 +134,22 @@ const App = () => {
           {showLogin && <Login onClose={toggleLogin} onLoginSuccess={handleLoginSuccess} />}
           {showRegister && <Register onClose={toggleRegister} onRegisterSuccess={handleRegisterSuccess} />}
         </AuthContainer>
-        {showLogin || showRegister ? null : (
-          <>
-            {showUsers && <Users />}
-            {!showUsers && (
-              <>
-                <PostForm />
-                <PostList />
-              </>
-            )}
-          </>
-        )}
+        <MainContent>
+          {showLogin || showRegister ? null : (
+            <>
+              {showUsers && <Users />}
+              {!showUsers && (
+                <>
+                  <PostForm />
+                  <div style={{ marginTop: '20px' }}>
+                    <PostList />
+                  </div>
+                </>
+              )}
+            </>
+          )}
+        </MainContent>
+        <Footer />
       </AuthProvider>
     </AppContainer>
   );

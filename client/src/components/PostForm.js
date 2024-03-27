@@ -186,6 +186,3 @@ const UploadedFilesContainer = styled.div`
 `;
 
 export default PostForm;
-
-
-
