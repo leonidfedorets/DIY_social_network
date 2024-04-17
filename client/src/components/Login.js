@@ -42,13 +42,6 @@ const Error = styled.p`
   font-size: 14px;
 `;
 
-const SwitchLink = styled.span`
-  color: blue;
-  cursor: pointer;
-  margin-top: 10px;
-  text-decoration: underline;
-`;
-
 const CloseButton = styled.button`
   position: absolute;
   top: 5px;
@@ -62,7 +55,6 @@ const Login = ({ onClose, onLoginSuccess }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
-
   const { login } = useAuth(); // Use the login function from useAuth
 
   const handleLogin = async (e) => {
@@ -74,13 +66,14 @@ const Login = ({ onClose, onLoginSuccess }) => {
       });
       const userData = response.data.user;
       const token = response.data.token;
-      localStorage.setItem('token', token); // Store the token in localStorage
+      console.log('Token stored:', token);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      document.cookie = `token=${token}; path=/;`;
       onLoginSuccess(userData);
     } catch (error) {
       setError(error.response.data.error);
     }
   };
-
   return (
     <PopupContainer>
       <Popup>

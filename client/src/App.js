@@ -140,7 +140,7 @@ const App = () => {
               {showUsers && <Users />}
               {!showUsers && (
                 <>
-                  <PostForm />
+                  <PostForm username={user ? user.username : null} /> {/* Pass username here */}
                   <div style={{ marginTop: '20px' }}>
                     <PostList />
                   </div>

@@ -14,11 +14,17 @@ const ListItem = styled.li`
   margin-bottom: 10px;
 `;
 
+const Timestamp = styled.p`
+  font-size: 0.9rem;
+  color: #777;
+  margin-top: 5px;
+`;
+
 const PostList = () => {
   const [posts, setPosts] = useState([]);
 
   useEffect(() => {
-    // Fetch posts from the backend when the component mounts
+    // Function to fetch posts from the backend
     const fetchPosts = async () => {
       try {
         const response = await axios.get('http://localhost:4000/api/posts');
@@ -28,8 +34,23 @@ const PostList = () => {
       }
     };
 
+    // Call fetchPosts when the component mounts and after a new post is submitted
     fetchPosts();
-  }, []);
+  }, []); // Empty dependency array ensures this effect runs once on mount
+
+  // Function to format the timestamp into a human-readable format
+  const formatTimestamp = (timestamp) => {
+    const options = {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      second: 'numeric',
+      hour12: true,
+    };
+    return new Date(timestamp).toLocaleString(undefined, options);
+  };
 
   return (
     <div>
@@ -40,8 +61,11 @@ const PostList = () => {
             <Avatar username={post.username} /> {/* Use the Avatar component with username */}
             <div>
               <h3>{post.title}</h3>
-              <p>{post.description}</p>
-              <p>{post.instructions}</p>
+              {/* Render the description and instructions as HTML */}
+              <p dangerouslySetInnerHTML={{ __html: post.description }} />
+              <p dangerouslySetInnerHTML={{ __html: post.instructions }} />
+              {/* Display the styled timestamp */}
+              <Timestamp>Posted on: {formatTimestamp(post.createdAt)}</Timestamp>
             </div>
           </ListItem>
         ))}

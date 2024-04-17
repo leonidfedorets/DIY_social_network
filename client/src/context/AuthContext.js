@@ -1,90 +1,88 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
 const AuthContext = createContext();
 
+export const useAuth = () => {
+  return useContext(AuthContext);
+};
+
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const loadUser = async () => {
-      const token = localStorage.getItem('token');
-  
-      if (token) {
-        axios.defaults.withCredentials = true; // Add this line
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        console.log('Axios headers:', axios.defaults.headers);
-  
-        try {
-          const response = await axios.get('http://localhost:4000/api/users/check-auth');
-          setUser(response.data.user);
-        } catch (error) {
-          console.error('Error checking authentication:', error);
-          setUser(null);
-          localStorage.removeItem('token');
-          delete axios.defaults.headers.common['Authorization'];
-        }
-      }
-    };
-  
-    loadUser();
+    const storedToken = localStorage.getItem('token');
+    if (storedToken) {
+      setToken(storedToken);
+      setIsAuthenticated(true);
+    }
   }, []);
-  
-  const login = async (username, password) => {
+
+  const loginUser = async (username, password) => {
     try {
-      const response = await axios.post('http://localhost:4000/api/users/login', { username, password }, {
-        withCredentials: true,
+      const response = await axios.post('http://localhost:4000/api/users/login', {
+        username,
+        password,
       });
       const { user, token } = response.data;
-  
+      setToken(token);
       setUser(user);
+      setIsAuthenticated(true);
       localStorage.setItem('token', token);
-      console.log('Token stored:', token); // Log the token here
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-  
-      return user;
     } catch (error) {
       console.error('Error logging in:', error);
-      throw error;
+      throw new Error('Error logging in');
     }
   };
 
-  const logout = async () => {
+  const logoutUser = async () => {
     try {
       await axios.get('http://localhost:4000/api/users/logout');
+      setToken(null);
       setUser(null);
+      setIsAuthenticated(false);
       localStorage.removeItem('token');
-      delete axios.defaults.headers.common['Authorization'];
     } catch (error) {
       console.error('Error logging out:', error);
-      throw error;
+      throw new Error('Error logging out');
     }
   };
 
-  const register = async (username, password) => {
+  const checkAuth = async () => {
     try {
-      const response = await axios.post('http://localhost:4000/api/users/register', { username, password }, {
-        withCredentials: true,
+      const response = await axios.get('http://localhost:4000/api/users/check-auth', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
-      console.log(response.data);
+      setUser(response.data.user);
+      setIsAuthenticated(true);
     } catch (error) {
-      console.error('Error registering:', error);
+      console.error('Error checking authentication:', error);
+      setToken(null);
+      setUser(null);
+      setIsAuthenticated(false);
+      localStorage.removeItem('token');
     }
   };
 
-  return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  const values = {
+    user,
+    token,
+    isAuthenticated,
+    loginUser,
+    logoutUser,
+    checkAuth,
+  };
+
+  return <AuthContext.Provider value={values}>{children}</AuthContext.Provider>;
 };
 
-const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+export { AuthProvider, AuthContext }; // Remove useAuth from exports
 
-export { AuthContext, AuthProvider, useAuth };
+
+
+
+

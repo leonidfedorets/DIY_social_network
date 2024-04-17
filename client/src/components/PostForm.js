@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
-import { useAuth } from '../context/AuthContext';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
-const PostForm = () => {
+const PostForm = ({ username }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [instructions, setInstructions] = useState('');
@@ -14,8 +13,6 @@ const PostForm = () => {
   const [success, setSuccess] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadedFiles, setUploadedFiles] = useState([]);
-  
-  const { user, token } = useAuth();
 
   const handleTitleChange = (e) => {
     setTitle(e.target.value);
@@ -36,26 +33,20 @@ const PostForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!user || !token) {
-      setError('User not authenticated. Please log in.');
-      return;
-    }
-
     const url = 'http://localhost:4000/api/posts';
 
     const formData = new FormData();
+    formData.append('username', username);
     formData.append('title', title);
     formData.append('description', description);
     formData.append('instructions', instructions);
     files.forEach((file) => {
       formData.append('files', file);
     });
-    formData.append('username', user.username);
 
     const config = {
       headers: {
         'Content-Type': 'multipart/form-data',
-        Authorization: `Bearer ${token}`,
       },
       onUploadProgress: (progressEvent) => {
         const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
@@ -67,7 +58,7 @@ const PostForm = () => {
       const response = await axios.post(url, formData, config);
 
       setSuccess(true);
-      setUploadedFiles(response.data.uploadedFiles);
+      setUploadedFiles(response.data.uploadedFiles || []);
 
       // Clear form after successful submission
       setTitle('');
@@ -186,3 +177,4 @@ const UploadedFilesContainer = styled.div`
 `;
 
 export default PostForm;
+
