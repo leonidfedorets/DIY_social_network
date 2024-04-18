@@ -32,3 +32,32 @@ exports.getPosts = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+// React to a post
+exports.reactToPost = async (req, res) => {
+  try {
+    const postId = req.params.postId;
+    const { reaction } = req.body;
+
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    // Check if the reaction is valid
+    const validReactions = ['like', 'love', 'laugh', 'angry'];
+    if (!validReactions.includes(reaction)) {
+      return res.status(400).json({ message: 'Invalid reaction' });
+    }
+
+    // Add the reaction to the post if not already present
+    if (!post.reactions.includes(reaction)) {
+      post.reactions.push(reaction);
+      await post.save();
+    }
+
+    res.status(200).json({ message: 'Reaction added successfully', reactions: post.reactions });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};

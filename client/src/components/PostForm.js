@@ -115,7 +115,7 @@ const PostForm = ({ username }) => {
 const Form = styled.form`
   display: flex;
   flex-direction: column;
-  max-width: 400px;
+  max-width: 800px;
   margin: 0 auto;
 `;
 
@@ -167,6 +167,7 @@ const SuccessMessage = styled.p`
 
 const Progress = styled.progress`
   margin-top: 10px;
+  width: 100%;
 `;
 
 const UploadedFilesContainer = styled.div`

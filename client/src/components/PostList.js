@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import styled from 'styled-components';
-import Avatar from './Avatar'; // Import the Avatar component
+import { FaRegThumbsUp, FaRegHeart, FaRegLaugh, FaRegAngry } from 'react-icons/fa';
+import Avatar from './Avatar';
 
 const List = styled.ul`
   margin-top: 20px;
+  
 `;
 
 const ListItem = styled.li`
@@ -12,19 +14,76 @@ const ListItem = styled.li`
   border: 1px solid #ccc;
   background-color: #f9f9f9;
   margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
 `;
 
-const Timestamp = styled.p`
-  font-size: 0.9rem;
-  color: #777;
-  margin-top: 5px;
+const PostContent = styled.div`
+  display: flex;
+  flex-direction: column;
 `;
 
-const PostList = () => {
+const PostHeader = styled.div`
+  display: flex;
+  align-items: center;
+  width: 1000px
+`;
+
+const PostText = styled.div`
+  margin-left: 10px;
+  
+`;
+
+const PostTitle = styled.h3`
+  margin: 0;
+`;
+
+const PostDescription = styled.p`
+  margin: 5px 0;
+`;
+
+const ReactionsContainer = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  width: 200px; /* Fixed width for reactions container */
+`;
+
+const ReactionButton = styled.button`
+  background-color: ${(props) => (props.selected ? '#007bff' : '#f9f9f9')};
+  color: ${(props) => (props.selected ? 'white' : '#007bff')};
+  border: 1px solid #007bff;
+  padding: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px; /* Fixed width for reaction button */
+  height: 30px; /* Fixed height for reaction button */
+  margin-left: 5px;
+`;
+
+const ReactionCounter = styled.span`
+  font-size: 14px;
+  color: #666;
+  margin-left: 5px;
+`;
+
+const TimeStamp = styled.span`
+  font-size: 12px;
+  color: #999;
+`;
+const AvatarContainer = styled.div`
+  display: flex;
+  align-items: center;
+  width: 50px;
+`;
+
+const PostList = ({ user }) => {
   const [posts, setPosts] = useState([]);
 
   useEffect(() => {
-    // Function to fetch posts from the backend
     const fetchPosts = async () => {
       try {
         const response = await axios.get('http://localhost:4000/api/posts');
@@ -34,22 +93,34 @@ const PostList = () => {
       }
     };
 
-    // Call fetchPosts when the component mounts and after a new post is submitted
     fetchPosts();
-  }, []); // Empty dependency array ensures this effect runs once on mount
+  }, []);
 
-  // Function to format the timestamp into a human-readable format
-  const formatTimestamp = (timestamp) => {
-    const options = {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: 'numeric',
-      second: 'numeric',
-      hour12: true,
-    };
-    return new Date(timestamp).toLocaleString(undefined, options);
+  const handleReaction = async (postId, reaction) => {
+    try {
+      const username = user && user.username;
+      const response = await axios.post(`http://localhost:4000/api/posts/${postId}/react`, {
+        reaction,
+        user: username,
+      });
+      const updatedPosts = posts.map((post) => {
+        if (post._id === postId) {
+          return {
+            ...post,
+            reactions: response.data.reactions,
+          };
+        }
+        return post;
+      });
+      setPosts(updatedPosts);
+    } catch (error) {
+      console.error('Error reacting to post:', error);
+    }
+  };
+
+  const getReactionCount = (postId, reaction) => {
+    const post = posts.find((post) => post._id === postId);
+    return post ? (post.reactions ? post.reactions.filter((r) => r === reaction).length : 0) : 0;
   };
 
   return (
@@ -58,15 +129,51 @@ const PostList = () => {
       <List>
         {posts.map((post) => (
           <ListItem key={post._id}>
-            <Avatar username={post.username} /> {/* Use the Avatar component with username */}
-            <div>
-              <h3>{post.title}</h3>
-              {/* Render the description and instructions as HTML */}
-              <p dangerouslySetInnerHTML={{ __html: post.description }} />
-              <p dangerouslySetInnerHTML={{ __html: post.instructions }} />
-              {/* Display the styled timestamp */}
-              <Timestamp>Posted on: {formatTimestamp(post.createdAt)}</Timestamp>
-            </div>
+             <AvatarContainer>
+              <Avatar username={post.username} />
+              </AvatarContainer>
+            <PostContent>
+            
+              <PostHeader>
+                
+                <PostText>
+                  <PostTitle>{post.title}</PostTitle>
+                  <PostDescription dangerouslySetInnerHTML={{ __html: post.description }} />
+                  <PostDescription dangerouslySetInnerHTML={{ __html: post.instructions }} />
+                </PostText>
+              </PostHeader>
+              <TimeStamp>Posted on: {new Date(post.createdAt).toLocaleString()}</TimeStamp>
+            </PostContent>
+            <ReactionsContainer>
+              <ReactionButton
+                selected={post.reactions && post.reactions.includes('like')}
+                onClick={() => handleReaction(post._id, 'like')}
+              >
+                <FaRegThumbsUp />
+                <ReactionCounter>{getReactionCount(post._id, 'like')}</ReactionCounter>
+              </ReactionButton>
+              <ReactionButton
+                selected={post.reactions && post.reactions.includes('love')}
+                onClick={() => handleReaction(post._id, 'love')}
+              >
+                <FaRegHeart />
+                <ReactionCounter>{getReactionCount(post._id, 'love')}</ReactionCounter>
+              </ReactionButton>
+              <ReactionButton
+                selected={post.reactions && post.reactions.includes('laugh')}
+                onClick={() => handleReaction(post._id, 'laugh')}
+              >
+                <FaRegLaugh />
+                <ReactionCounter>{getReactionCount(post._id, 'laugh')}</ReactionCounter>
+              </ReactionButton>
+              <ReactionButton
+                selected={post.reactions && post.reactions.includes('angry')}
+                onClick={() => handleReaction(post._id, 'angry')}
+              >
+                <FaRegAngry />
+                <ReactionCounter>{getReactionCount(post._id, 'angry')}</ReactionCounter>
+              </ReactionButton>
+            </ReactionsContainer>
           </ListItem>
         ))}
       </List>
@@ -75,3 +182,4 @@ const PostList = () => {
 };
 
 export default PostList;
+

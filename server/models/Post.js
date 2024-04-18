@@ -8,6 +8,8 @@ const postSchema = new mongoose.Schema({
   image: { type: String },
   video: { type: String },
   createdAt: { type: Date, default: Date.now },
+  reactions: { type: [String], default: [] }, // Initialize with an empty array
+
 });
 
 const Post = mongoose.model('Post', postSchema);
