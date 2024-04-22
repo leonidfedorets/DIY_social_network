@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
 import ReactQuill from 'react-quill';
@@ -8,7 +8,8 @@ const PostForm = ({ username }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [instructions, setInstructions] = useState('');
-  const [files, setFiles] = useState([]);
+  const [file, setFile] = useState(null); // Store selected file
+  const [filePreview, setFilePreview] = useState(null); // Store file preview
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -27,7 +28,15 @@ const PostForm = ({ username }) => {
   };
 
   const handleFileChange = (e) => {
-    setFiles([...e.target.files]);
+    const selectedFile = e.target.files[0];
+    setFile(selectedFile);
+
+    // Check if file is a picture or video and set preview accordingly
+    const fileReader = new FileReader();
+    fileReader.onloadend = () => {
+      setFilePreview(fileReader.result);
+    };
+    fileReader.readAsDataURL(selectedFile);
   };
 
   const handleSubmit = async (e) => {
@@ -40,9 +49,7 @@ const PostForm = ({ username }) => {
     formData.append('title', title);
     formData.append('description', description);
     formData.append('instructions', instructions);
-    files.forEach((file) => {
-      formData.append('files', file);
-    });
+    formData.append('file', file);
 
     const config = {
       headers: {
@@ -64,7 +71,8 @@ const PostForm = ({ username }) => {
       setTitle('');
       setDescription('');
       setInstructions('');
-      setFiles([]);
+      setFile(null);
+      setFilePreview(null);
       setUploadProgress(0);
     } catch (error) {
       console.error('Error submitting post:', error);
@@ -84,16 +92,36 @@ const PostForm = ({ username }) => {
         placeholder="Description"
         value={description}
         onChange={handleDescriptionChange}
+        modules={{
+          toolbar: {
+            container: [
+              [{ header: [1, 2, false] }],
+              ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+              [{ list: 'ordered' }, { list: 'bullet' }],
+              ['link', 'image', 'video'], // Include image and video options
+              ['clean'],
+            ],
+          },
+        }}
       />
+      {filePreview && <FilePreview src={filePreview} alt="File Preview" />}
       <RichText
         placeholder="Instructions"
         value={instructions}
         onChange={handleInstructionsChange}
+        modules={{
+          toolbar: {
+            container: [
+              [{ header: [1, 2, false] }],
+              ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+              [{ list: 'ordered' }, { list: 'bullet' }],
+              ['link', 'image', 'video'], // Include image and video options
+              ['clean'],
+            ],
+          },
+        }}
       />
-      <FileUploadLabel>
-        Choose Files
-        <FileUploadInput type="file" onChange={handleFileChange} multiple />
-      </FileUploadLabel>
+      
       <Button type="submit">Submit</Button>
       {error && <ErrorMessage>{error}</ErrorMessage>}
       {success && <SuccessMessage>Post submitted successfully!</SuccessMessage>}
@@ -131,6 +159,11 @@ const RichText = styled(ReactQuill)`
   min-height: 150px;
 `;
 
+const FilePreview = styled.img`
+  max-width: 100%;
+  margin-bottom: 10px;
+`;
+
 const FileUploadLabel = styled.label`
   padding: 8px 16px;
   border: none;
@@ -150,11 +183,15 @@ const FileUploadInput = styled.input`
 
 const Button = styled.button`
   padding: 8px 16px;
+  display:block;
+  margin:auto;
+  width:200px;
   border: none;
   background-color: #007bff;
   color: white;
   cursor: pointer;
   margin-top: 10px;
+  
 `;
 
 const ErrorMessage = styled.p`
@@ -178,4 +215,3 @@ const UploadedFilesContainer = styled.div`
 `;
 
 export default PostForm;
-

@@ -25,12 +25,12 @@ const SocialIconLink = styled.a`
 const Footer = () => {
   return (
     <FooterContainer>
-      <p>Address: 1234 Main Street, Cityville, State, Country</p>
-      <p>Phone: +1 (123) 456-7890</p>
-      <p>Email: info@example.com</p>
+      <p>Address: 8A Pravda Avenue, Kyiv, Kyiv Regioin, Ukraine</p>
+      <p>Phone: +380 (66) 103-9977</p>
+      <p>Email: leonidfedorets30@gmail.com</p>
       <p>All Rights Reserved &copy; 2024</p>
       <SocialIcons>
-        <SocialIconLink href="#">
+        <SocialIconLink href="https://www.linkedin.com/in/leonid-fedorets-6b778431/">
           <FaFacebook />
         </SocialIconLink>
         <SocialIconLink href="#">

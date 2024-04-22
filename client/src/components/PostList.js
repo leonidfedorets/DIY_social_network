@@ -6,7 +6,6 @@ import Avatar from './Avatar';
 
 const List = styled.ul`
   margin-top: 20px;
-  
 `;
 
 const ListItem = styled.li`
@@ -26,20 +25,23 @@ const PostContent = styled.div`
 const PostHeader = styled.div`
   display: flex;
   align-items: center;
-  width: 1000px
+  width: 1000px;
 `;
 
 const PostText = styled.div`
   margin-left: 10px;
-  
 `;
 
 const PostTitle = styled.h3`
   margin: 0;
 `;
 
-const PostDescription = styled.p`
+const PostDescription = styled.div`
   margin: 5px 0;
+  img {
+    max-width: 100%;
+    height: auto;
+  }
 `;
 
 const ReactionsContainer = styled.div`
@@ -80,8 +82,26 @@ const AvatarContainer = styled.div`
   width: 50px;
 `;
 
+const PaginationContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+`;
+
+const PaginationButton = styled.button`
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  margin: 0 5px;
+  border-radius: 5px;
+  cursor: pointer;
+`;
+
 const PostList = ({ user }) => {
   const [posts, setPosts] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const postsPerPage = 5;
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -95,6 +115,10 @@ const PostList = ({ user }) => {
 
     fetchPosts();
   }, []);
+
+  const indexOfLastPost = currentPage * postsPerPage;
+  const indexOfFirstPost = indexOfLastPost - postsPerPage;
+  const currentPosts = posts.slice(indexOfFirstPost, indexOfLastPost);
 
   const handleReaction = async (postId, reaction) => {
     try {
@@ -123,19 +147,19 @@ const PostList = ({ user }) => {
     return post ? (post.reactions ? post.reactions.filter((r) => r === reaction).length : 0) : 0;
   };
 
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
   return (
     <div>
       <h2>Posts</h2>
       <List>
-        {posts.map((post) => (
+        {currentPosts.map((post) => (
           <ListItem key={post._id}>
-             <AvatarContainer>
+            <AvatarContainer>
               <Avatar username={post.username} />
-              </AvatarContainer>
+            </AvatarContainer>
             <PostContent>
-            
               <PostHeader>
-                
                 <PostText>
                   <PostTitle>{post.title}</PostTitle>
                   <PostDescription dangerouslySetInnerHTML={{ __html: post.description }} />
@@ -177,9 +201,15 @@ const PostList = ({ user }) => {
           </ListItem>
         ))}
       </List>
+      <PaginationContainer>
+        {Array.from({ length: Math.ceil(posts.length / postsPerPage) }, (_, index) => (
+          <PaginationButton key={index} onClick={() => paginate(index + 1)}>
+            {index + 1}
+          </PaginationButton>
+        ))}
+      </PaginationContainer>
     </div>
   );
 };
 
 export default PostList;
-
