@@ -3,6 +3,7 @@ import axios from 'axios';
 import styled from 'styled-components';
 import { FaRegThumbsUp, FaRegHeart, FaRegLaugh, FaRegAngry } from 'react-icons/fa';
 import Avatar from './Avatar';
+import EditModal from './EditModal'; // Import the EditModal component
 
 const List = styled.ul`
   margin-top: 20px;
@@ -97,10 +98,23 @@ const PaginationButton = styled.button`
   border-radius: 5px;
   cursor: pointer;
 `;
+const EditButton = styled.button`
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px; 
+  border-radius: 5px;
+  cursor: pointer;
+  height:35px;
+  width:60px;
+  display:flex;
+  margin: 5px
+`;
 
 const PostList = ({ user }) => {
   const [posts, setPosts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [editPostId, setEditPostId] = useState(null); // Track the post id for editing
   const postsPerPage = 5;
 
   useEffect(() => {
@@ -149,6 +163,19 @@ const PostList = ({ user }) => {
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
+  const handleEditClick = (postId) => {
+    setEditPostId(postId); // Set the post id for editing
+  };
+
+  const handleCloseEditModal = () => {
+    setEditPostId(null); // Reset the edit post id
+  };
+
+  const handlePostUpdate = (updatedPost) => {
+    // Update the post in the state
+    setPosts(posts.map(post => post._id === updatedPost._id ? updatedPost : post));
+  };
+
   return (
     <div>
       <h2>Posts</h2>
@@ -159,6 +186,7 @@ const PostList = ({ user }) => {
               <Avatar username={post.username} />
             </AvatarContainer>
             <PostContent>
+           
               <PostHeader>
                 <PostText>
                   <PostTitle>{post.title}</PostTitle>
@@ -166,6 +194,7 @@ const PostList = ({ user }) => {
                   <PostDescription dangerouslySetInnerHTML={{ __html: post.instructions }} />
                 </PostText>
               </PostHeader>
+              <EditButton onClick={() => handleEditClick(post._id)}>Edit</EditButton> {/* Add this line */}
               <TimeStamp>Posted on: {new Date(post.createdAt).toLocaleString()}</TimeStamp>
             </PostContent>
             <ReactionsContainer>
@@ -198,6 +227,7 @@ const PostList = ({ user }) => {
                 <ReactionCounter>{getReactionCount(post._id, 'angry')}</ReactionCounter>
               </ReactionButton>
             </ReactionsContainer>
+           
           </ListItem>
         ))}
       </List>
@@ -208,6 +238,9 @@ const PostList = ({ user }) => {
           </PaginationButton>
         ))}
       </PaginationContainer>
+      {editPostId && (
+        <EditModal postId={editPostId} onClose={handleCloseEditModal} onPostUpdate={handlePostUpdate} /> // Render EditModal if editPostId is set
+      )}
     </div>
   );
 };

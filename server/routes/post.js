@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const { createPost, getPosts, reactToPost } = require('../controllers/post');
+const { updatePost } = require('../controllers/post')
 
 // Multer configuration for handling file uploads
 const storage = multer.diskStorage({
@@ -38,7 +39,12 @@ router.post('/', upload.single('file'), createPost);
 // Define the GET route for retrieving all posts
 router.get('/', getPosts);
 
+router.get('/:postId',getPosts)
+
 // Define the POST route for reacting to a post
 router.post('/:postId/react', reactToPost);
+
+// Define the PUT route for updating a post
+router.put('/:postId', updatePost);
 
 module.exports = router;

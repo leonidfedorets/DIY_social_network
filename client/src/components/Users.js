@@ -7,7 +7,7 @@ const TableContainer = styled.div`
 `;
 
 const Table = styled.table`
-  width: 100%;
+  width: 750px;
   border-collapse: collapse;
 `;
 

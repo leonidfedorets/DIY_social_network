@@ -25,7 +25,7 @@ const SocialIconLink = styled.a`
 const Footer = () => {
   return (
     <FooterContainer>
-      <p>Address: 8A Pravda Avenue, Kyiv, Kyiv Regioin, Ukraine</p>
+      <p>Address: 8A Pravda Avenue, Kyiv, Kyiv Region, Ukraine</p>
       <p>Phone: +380 (66) 103-9977</p>
       <p>Email: leonidfedorets30@gmail.com</p>
       <p>All Rights Reserved &copy; 2024</p>

@@ -32,6 +32,22 @@ exports.getPosts = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+// Get post by ID
+exports.getPost = async (req, res) => {
+  try {
+    const postId = req.params.postId;
+    const post = await Post.findById(postId); // Assuming you're using Mongoose or a similar ORM
+    
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+    
+    res.status(200).json(post);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
 
 // React to a post
 exports.reactToPost = async (req, res) => {
@@ -59,5 +75,27 @@ exports.reactToPost = async (req, res) => {
     res.status(200).json({ message: 'Reaction added successfully', reactions: post.reactions });
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+};
+
+// Update an existing post
+exports.updatePost = async (req, res) => {
+  try {
+    const postId = req.params.postId;
+    // Fetch the post from the database
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+    // Update the post properties based on the request body
+    post.title = req.body.title || post.title;
+    post.description = req.body.description || post.description;
+    post.instructions = req.body.instructions || post.instructions;
+    // Save the updated post
+    const updatedPost = await post.save();
+    res.json(updatedPost);
+  } catch (error) {
+    console.error('Error updating post:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
