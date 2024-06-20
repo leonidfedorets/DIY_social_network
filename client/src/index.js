@@ -1,13 +1,18 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
-import { AuthProvider } from './context/AuthContext';
+import { createRoot } from 'react-dom/client';
 import App from './App';
+import { AuthProvider } from './context/AuthContext';
+import ErrorBoundary from './components/ErrorBoundary';
 
-ReactDOM.render(
+const container = document.getElementById('root');
+const root = createRoot(container);
+
+root.render(
   <React.StrictMode>
     <AuthProvider>
-      <App />
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
     </AuthProvider>
-  </React.StrictMode>,
-  document.getElementById('root')
+  </React.StrictMode>
 );

@@ -1,23 +1,21 @@
 const express = require('express');
 const router = express.Router();
+const { createPost, getPosts, getPost, reactToPost, updatePost, deletePost } = require('../controllers/post');
 const multer = require('multer');
-const { createPost, getPosts, reactToPost } = require('../controllers/post');
-const { updatePost } = require('../controllers/post')
+const authMiddleware = require('../middleware/authMiddleware');
+const adminMiddleware = require('../middleware/adminMiddleware');
 
 // Multer configuration for handling file uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    // Define the destination folder for uploads
     cb(null, 'uploads/');
   },
   filename: function (req, file, cb) {
-    // Define the file name
     cb(null, file.originalname);
   },
 });
 
 const fileFilter = function (req, file, cb) {
-  // Check file types
   if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png' || file.mimetype === 'video/mp4') {
     cb(null, true);
   } else {
@@ -27,24 +25,15 @@ const fileFilter = function (req, file, cb) {
 
 const upload = multer({
   storage: storage,
-  limits: {
-    fileSize: 1024 * 1024 * 5, // Limit file size to 5MB
-  },
+  limits: { fileSize: 1024 * 1024 * 5 }, // Limit file size to 5MB
   fileFilter: fileFilter,
 });
 
-// Define the POST route for creating a new post
-router.post('/', upload.single('file'), createPost);
-
-// Define the GET route for retrieving all posts
-router.get('/', getPosts);
-
-router.get('/:postId',getPosts)
-
-// Define the POST route for reacting to a post
-router.post('/:postId/react', reactToPost);
-
-// Define the PUT route for updating a post
-router.put('/:postId', updatePost);
+router.post('/', authMiddleware, upload.single('file'), createPost); // Ensure authenticated users can create posts
+router.get('/', getPosts); // Public route to get posts
+router.get('/:postId', getPost); // Public route to get a single post
+router.post('/:postId/react', authMiddleware, reactToPost); // Ensure authenticated users can react to posts
+router.put('/:postId', authMiddleware, upload.single('file'), updatePost); // Ensure authenticated users can update posts
+router.delete('/:postId', authMiddleware, adminMiddleware, deletePost); // Ensure only admins can delete posts
 
 module.exports = router;

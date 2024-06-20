@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import styled from 'styled-components';
-import { useAuth } from '../context/AuthContext'; // Import the useAuth hook
+import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 
 const PopupContainer = styled.div`
   position: fixed;
@@ -52,54 +52,39 @@ const CloseButton = styled.button`
 `;
 
 const Login = ({ onClose, onLoginSuccess }) => {
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState(''); // Correct usage of useState
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
-  const { login } = useAuth(); // Use the login function from useAuth
+  const { login } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:4000/api/users/login', {
-        username,
-        password,
-      });
-      const userData = response.data.user;
-      const token = response.data.token;
-      console.log('Token stored:', token);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      document.cookie = `token=${token}; path=/;`;
-      onLoginSuccess(userData);
+      const response = await axios.post('http://localhost:4000/api/users/login', { username, password });
+      const { user, token } = response.data;
+      login(user, token);
+      onLoginSuccess(user, token);
     } catch (error) {
       setError(error.response.data.error);
     }
   };
+
   return (
     <PopupContainer>
       <Popup>
         <CloseButton onClick={onClose}>X</CloseButton>
         <h2>Login</h2>
         <Form onSubmit={handleLogin}>
-          <Input
-            type="text"
-            placeholder="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-          <Input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          <Input type="text" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} />
+          <Input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
           {error && <Error>{error}</Error>}
           <Button type="submit">Login</Button>
         </Form>
-        {error && <Error>{error}</Error>}
       </Popup>
     </PopupContainer>
   );
 };
 
 export default Login;
+
 

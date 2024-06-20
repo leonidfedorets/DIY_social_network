@@ -5,6 +5,7 @@ import 'react-quill/dist/quill.snow.css';
 import axios from 'axios';
 import { FaTimes } from 'react-icons/fa';
 
+
 const CancelButton = styled.button`
   padding: 8px 16px;
   border-radius: 5px;
@@ -15,7 +16,7 @@ const CancelButton = styled.button`
   margin: 5px;
 `;
 
-const EditModal = ({ postId, onClose, currentUser }) => {
+const EditModal = ({ postId, onClose, currentUser, onPostUpdate }) => {
   const [post, setPost] = useState(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -25,7 +26,11 @@ const EditModal = ({ postId, onClose, currentUser }) => {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const response = await axios.get(`http://localhost:4000/api/posts/${postId}`);
+        const response = await axios.get(`http://localhost:4000/api/posts/${postId}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
         setPost(response.data);
         setTitle(response.data.title);
         setDescription(response.data.description);
@@ -33,6 +38,7 @@ const EditModal = ({ postId, onClose, currentUser }) => {
         setImages(response.data.images || []);
       } catch (error) {
         console.error('Error fetching post:', error);
+        
       }
     };
 
@@ -61,18 +67,30 @@ const EditModal = ({ postId, onClose, currentUser }) => {
     e.preventDefault();
 
     try {
-      const formData = new FormData();
-      formData.append('title', title);
-      formData.append('description', description);
-      formData.append('instructions', instructions);
-      images.forEach((image) => formData.append('images', image));
-      const response = await axios.put(`http://localhost:4000/api/posts/${postId}`, formData);
+      const response = await axios.put(
+        `http://localhost:4000/api/posts/${postId}`,
+        {
+          title,
+          description,
+          instructions,
+          images,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        }
+      );
 
       console.log('Post updated successfully:', response.data);
 
+      console.success('Post updated successfully!');
+
+      onPostUpdate(response.data); // Call onPostUpdate with the updated post data
       onClose();
     } catch (error) {
       console.error('Error updating post:', error);
+      
     }
   };
 
@@ -96,7 +114,7 @@ const EditModal = ({ postId, onClose, currentUser }) => {
           <PreviewImagesContainer>
             {images.map((image, index) => (
               <ImageContainer key={index}>
-                <img src={`http://localhost:4000/uploads/${image}`} alt={`Image ${index + 1}`} />
+                <img src={`http://localhost:4000/uploads/${image}`} alt="" />
                 {currentUser && currentUser.username === post.username && (
                   <DeleteImageButton onClick={() => handleImageDelete(index)}>
                     <FaTimes />

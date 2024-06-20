@@ -1,18 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import AuthContainer from './components/AuthContainer';
 import styled from 'styled-components';
 import PostForm from './components/PostForm';
 import PostList from './components/PostList';
 import Avatar from './components/Avatar';
 import LogoutButton from './components/LogoutButton';
-import Login from './components/Login';
-import Register from './components/Register';
+import LoginPopup from './components/LoginPopup';
+import RegisterPopup from './components/RegisterPopup';
 import Button from './components/Button';
 import Menu from './components/Menu';
 import Users from './components/Users';
-import axios from 'axios';
+import Backoffice from './components/Backoffice';
 import Footer from './components/Footer';
+import ErrorBoundary from './components/ErrorBoundary';
+import axios from 'axios';
+import toast from 'react-simple-toasts';
+import 'react-simple-toasts/dist/theme/dark.css';
+import './App.css'
 
 const AppContainer = styled.div`
   display: flex;
@@ -26,44 +31,35 @@ const MainContent = styled.div`
   padding: 20px;
 `;
 
+
 const App = () => {
+  const { user, logout, loading } = useAuth();
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
-  const [user, setUser] = useState(null);
+  const [showBackoffice, setShowBackoffice] = useState(false);
   const [showUsers, setShowUsers] = useState(false);
+  const [posts, setPosts] = useState([]);
 
   const toggleLogin = () => {
     setShowLogin(!showLogin);
     setShowRegister(false);
     setShowUsers(false);
+    setShowBackoffice(false);
   };
 
   const toggleRegister = () => {
     setShowRegister(!showRegister);
     setShowLogin(false);
     setShowUsers(false);
-  };
-
-  const handleLoginSuccess = (userData) => {
-    setUser(userData);
-    setShowLogin(false);
-    setShowRegister(false);
-  };
-
-  const handleRegisterSuccess = () => {
-    setShowLogin(true);
-    setShowRegister(false);
+    setShowBackoffice(false);
   };
 
   const handleLogout = async () => {
     try {
-      await axios.get('http://localhost:4000/api/users/logout');
-      setUser(null);
-      localStorage.removeItem('token');
-      delete axios.defaults.headers.common['Authorization'];
+      await logout();
+      toast('Logout successful', { theme: 'dark', className: 'success-toast' });
     } catch (error) {
-      console.error('Error logging out:', error);
-      throw error;
+      toast('Error logging out', { theme: 'dark', className: 'error-toast' });
     }
   };
 
@@ -71,6 +67,7 @@ const App = () => {
     setShowLogin(false);
     setShowRegister(false);
     setShowUsers(false);
+    setShowBackoffice(false);
   };
 
   const handleCategoriesClick = () => {
@@ -81,76 +78,83 @@ const App = () => {
     setShowUsers(true);
     setShowLogin(false);
     setShowRegister(false);
+    setShowBackoffice(false);
   };
 
   const handleSettingsClick = () => {
     // Implement logic for Settings click
   };
 
+  const handleBackofficeClick = () => {
+    setShowBackoffice(true);
+    setShowLogin(false);
+    setShowRegister(false);
+    setShowUsers(false);
+  };
+
   useEffect(() => {
-    const loadUser = async () => {
-      const token = localStorage.getItem('token');
-  
-      if (token) {
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        console.log('Axios headers:', axios.defaults.headers); // Log the headers
-  
-        try {
-          const response = await axios.get('http://localhost:4000/api/users/check-auth');
-          setUser(response.data.user);
-        } catch (error) {
-          console.error('Error checking authentication:', error);
-          setUser(null);
-          localStorage.removeItem('token');
-          delete axios.defaults.headers.common['Authorization'];
-        }
+    const fetchPosts = async () => {
+      try {
+        const response = await axios.get('http://localhost:4000/api/posts');
+        setPosts(response.data);
+      } catch (error) {
+        console.error('Error fetching posts:', error);
       }
     };
-    
-    loadUser();
+
+    fetchPosts();
   }, []);
+
+  const handlePostSubmit = (newPost) => {
+    setPosts([newPost, ...posts]);
+  };
 
   return (
     <AppContainer>
       <AuthProvider>
-        <AuthContainer>
-          <Menu
-            onHomeClick={handleHomeClick}
-            onCategoriesClick={handleCategoriesClick}
-            onUsersClick={handleUsersClick}
-            onSettingsClick={handleSettingsClick}
-          />
-          {user ? (
-            <>
-              <Avatar username={user.username} />
-              <LogoutButton onLogout={handleLogout} />
-            </>
-          ) : (
-            <>
-              <Button onClick={toggleLogin}>Login</Button>
-              <Button onClick={toggleRegister}>Register</Button>
-            </>
-          )}
-          {showLogin && <Login onClose={toggleLogin} onLoginSuccess={handleLoginSuccess} />}
-          {showRegister && <Register onClose={toggleRegister} onRegisterSuccess={handleRegisterSuccess} />}
-        </AuthContainer>
-        <MainContent>
-          {showLogin || showRegister ? null : (
-            <>
-              {showUsers && <Users />}
-              {!showUsers && (
-                <>
-                  <PostForm username={user ? user.username : null} /> {/* Pass username here */}
-                  <div style={{ marginTop: '20px' }}>
-                    <PostList />
-                  </div>
-                </>
-              )}
-            </>
-          )}
-        </MainContent>
-        <Footer />
+        <ErrorBoundary>
+          <AuthContainer>
+            <Menu
+              onHomeClick={handleHomeClick}
+              onCategoriesClick={handleCategoriesClick}
+              onUsersClick={handleUsersClick}
+              onSettingsClick={handleSettingsClick}
+              onBackofficeClick={handleBackofficeClick}
+            />
+            {user ? (
+              <>
+                <Avatar username={user.username} />
+                <LogoutButton onLogout={handleLogout} />
+              </>
+            ) : (
+              <>
+                <Button onClick={toggleLogin}>Login</Button>
+                <Button onClick={toggleRegister}>Register</Button>
+              </>
+            )}
+            {showLogin && <LoginPopup onClose={toggleLogin} />}
+            {showRegister && <RegisterPopup onClose={toggleRegister} />}
+          </AuthContainer>
+          <MainContent>
+            {!loading && (
+              <>
+                {showUsers && <Users />}
+                {showBackoffice && user?.role === 'admin' && <Backoffice user={user} />}
+                {!showUsers && !showBackoffice && (
+                  <>
+                    <PostForm username={user ? user.username : null} onPostSubmit={handlePostSubmit} />
+                    <div style={{ marginTop: '20px' }}>
+                      <PostList user={user} />
+                    </div>
+                  </>
+                )}
+              </>
+            )}
+          </MainContent>
+          <Footer />
+        </ErrorBoundary>
       </AuthProvider>
+     
     </AppContainer>
   );
 };

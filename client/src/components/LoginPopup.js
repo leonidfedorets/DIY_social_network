@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 
-const LoginPopup = ({ onClose, onLoginSuccess }) => {
+const LoginPopup = ({ onClose }) => {
+  const { login } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -10,11 +12,8 @@ const LoginPopup = ({ onClose, onLoginSuccess }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:4000/api/users/login', {
-        username: username.trim(),
-        password: password.trim(),
-      });
-      onLoginSuccess(response.data.user);
+      await login(username, password);
+      onClose();
     } catch (error) {
       setError(error.response.data.error);
     }
@@ -97,5 +96,3 @@ const CloseButton = styled.button`
 `;
 
 export default LoginPopup;
-
-

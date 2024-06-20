@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
 
-const RegisterPopup = ({ onClose, onSwitchView, onRegisterSuccess }) => {
+const RegisterPopup = ({ onClose, onRegisterSuccess }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -94,4 +94,5 @@ const CloseButton = styled.button`
 `;
 
 export default RegisterPopup;
+
 

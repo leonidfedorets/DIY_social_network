@@ -3,7 +3,7 @@ import axios from 'axios';
 import styled from 'styled-components';
 import { FaRegThumbsUp, FaRegHeart, FaRegLaugh, FaRegAngry } from 'react-icons/fa';
 import Avatar from './Avatar';
-import EditModal from './EditModal'; // Import the EditModal component
+import EditModal from './EditModal';
 
 const List = styled.ul`
   margin-top: 20px;
@@ -49,7 +49,7 @@ const ReactionsContainer = styled.div`
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  width: 200px; /* Fixed width for reactions container */
+  width: 200px;
 `;
 
 const ReactionButton = styled.button`
@@ -62,8 +62,8 @@ const ReactionButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 60px; /* Fixed width for reaction button */
-  height: 30px; /* Fixed height for reaction button */
+  width: 60px;
+  height: 30px;
   margin-left: 5px;
 `;
 
@@ -77,6 +77,7 @@ const TimeStamp = styled.span`
   font-size: 12px;
   color: #999;
 `;
+
 const AvatarContainer = styled.div`
   display: flex;
   align-items: center;
@@ -98,23 +99,37 @@ const PaginationButton = styled.button`
   border-radius: 5px;
   cursor: pointer;
 `;
+
 const EditButton = styled.button`
   background-color: #007bff;
   color: white;
   border: none;
-  padding: 10px 20px; 
+  padding: 10px 20px;
   border-radius: 5px;
   cursor: pointer;
-  height:35px;
-  width:60px;
-  display:flex;
-  margin: 5px
+  height: 35px;
+  width: 60px;
+  display: flex;
+  margin: 5px;
+`;
+
+const DeleteButton = styled.button`
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  height: 35px;
+  width: 60px;
+  display: flex;
+  margin: 5px;
 `;
 
 const PostList = ({ user }) => {
   const [posts, setPosts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [editPostId, setEditPostId] = useState(null); // Track the post id for editing
+  const [editPostId, setEditPostId] = useState(null);
   const postsPerPage = 5;
 
   useEffect(() => {
@@ -124,6 +139,7 @@ const PostList = ({ user }) => {
         setPosts(response.data);
       } catch (error) {
         console.error('Error fetching posts:', error);
+        
       }
     };
 
@@ -151,8 +167,37 @@ const PostList = ({ user }) => {
         return post;
       });
       setPosts(updatedPosts);
+      console.success('Reaction added');
     } catch (error) {
       console.error('Error reacting to post:', error);
+      
+    }
+  };
+
+  const postUpdate = async (postId, updatedData) => {
+    try {
+      const username = user && user.username;
+      const response = await axios.put(`http://localhost:4000/api/posts/${postId}`, {
+        ...updatedData,
+        user: username,
+      });
+      console.log('Post updated successfully:', response.data);
+      setPosts(posts.map((post) => (post._id === postId ? response.data : post)));
+      console.success('Post updated successfully');
+    } catch (error) {
+      console.error('Error updating post:', error);
+      
+    }
+  };
+
+  const handleDeleteClick = async (postId) => {
+    try {
+      await axios.delete(`http://localhost:4000/api/posts/${postId}`);
+      setPosts(posts.filter((post) => post._id !== postId));
+      console.success('Post deleted successfully');
+    } catch (error) {
+      
+      console.error('Error deleting post');
     }
   };
 
@@ -164,16 +209,11 @@ const PostList = ({ user }) => {
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   const handleEditClick = (postId) => {
-    setEditPostId(postId); // Set the post id for editing
+    setEditPostId(postId);
   };
 
   const handleCloseEditModal = () => {
-    setEditPostId(null); // Reset the edit post id
-  };
-
-  const handlePostUpdate = (updatedPost) => {
-    // Update the post in the state
-    setPosts(posts.map(post => post._id === updatedPost._id ? updatedPost : post));
+    setEditPostId(null);
   };
 
   return (
@@ -186,7 +226,6 @@ const PostList = ({ user }) => {
               <Avatar username={post.username} />
             </AvatarContainer>
             <PostContent>
-           
               <PostHeader>
                 <PostText>
                   <PostTitle>{post.title}</PostTitle>
@@ -194,7 +233,12 @@ const PostList = ({ user }) => {
                   <PostDescription dangerouslySetInnerHTML={{ __html: post.instructions }} />
                 </PostText>
               </PostHeader>
-              <EditButton onClick={() => handleEditClick(post._id)}>Edit</EditButton> {/* Add this line */}
+              {user && user.username === post.username && (
+                <>
+                  <EditButton onClick={() => handleEditClick(post._id)}>Edit</EditButton>
+                  <DeleteButton onClick={() => handleDeleteClick(post._id)}>Delete</DeleteButton>
+                </>
+              )}
               <TimeStamp>Posted on: {new Date(post.createdAt).toLocaleString()}</TimeStamp>
             </PostContent>
             <ReactionsContainer>
@@ -227,7 +271,6 @@ const PostList = ({ user }) => {
                 <ReactionCounter>{getReactionCount(post._id, 'angry')}</ReactionCounter>
               </ReactionButton>
             </ReactionsContainer>
-           
           </ListItem>
         ))}
       </List>
@@ -239,7 +282,7 @@ const PostList = ({ user }) => {
         ))}
       </PaginationContainer>
       {editPostId && (
-        <EditModal postId={editPostId} onClose={handleCloseEditModal} onPostUpdate={handlePostUpdate} /> // Render EditModal if editPostId is set
+        <EditModal postId={editPostId} onClose={handleCloseEditModal} onPostUpdate={postUpdate} />
       )}
     </div>
   );

@@ -3,8 +3,10 @@ import styled from 'styled-components';
 import axios from 'axios';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import toast from 'react-simple-toasts';
+import 'react-simple-toasts/dist/theme/dark.css';
 
-const PostForm = ({ username }) => {
+const PostForm = ({ username, onPostSubmit }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [instructions, setInstructions] = useState('');
@@ -42,6 +44,12 @@ const PostForm = ({ username }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Ensure instructions are not empty
+    if (!instructions) {
+      setError('Instructions are required.');
+      return;
+    }
+
     const url = 'http://localhost:4000/api/posts';
 
     const formData = new FormData();
@@ -54,6 +62,7 @@ const PostForm = ({ username }) => {
     const config = {
       headers: {
         'Content-Type': 'multipart/form-data',
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
       },
       onUploadProgress: (progressEvent) => {
         const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
@@ -74,9 +83,15 @@ const PostForm = ({ username }) => {
       setFile(null);
       setFilePreview(null);
       setUploadProgress(0);
+
+      toast('Post submitted successfully!', { theme: 'dark', className: 'success-toast' });
+
+      // Call the callback function with the new post data
+      onPostSubmit(response.data);
     } catch (error) {
-      console.error('Error submitting post:', error);
+      console.error('Error submitting post:', error.response || error.message || error);
       setError('Failed to submit post');
+      toast('Failed to submit post', { theme: 'dark', className: 'error-toast' });
     }
   };
 
@@ -104,7 +119,7 @@ const PostForm = ({ username }) => {
           },
         }}
       />
-      {filePreview && <FilePreview src={filePreview} alt="File Preview" />}
+      {filePreview && <FilePreview src={filePreview} />}
       <RichText
         placeholder="Instructions"
         value={instructions}
@@ -121,7 +136,7 @@ const PostForm = ({ username }) => {
           },
         }}
       />
-      
+      <input type="file" onChange={handleFileChange} />
       <Button type="submit">Submit</Button>
       {error && <ErrorMessage>{error}</ErrorMessage>}
       {success && <SuccessMessage>Post submitted successfully!</SuccessMessage>}
@@ -164,34 +179,16 @@ const FilePreview = styled.img`
   margin-bottom: 10px;
 `;
 
-const FileUploadLabel = styled.label`
-  padding: 8px 16px;
-  border: none;
-  background-color: #007bff;
-  color: white;
-  cursor: pointer;
-  margin-top: 10px;
-  display: inline-block;
-  width: fit-content;
-  transition: background-color 0.3s;
-  text-align: center;
-`;
-
-const FileUploadInput = styled.input`
-  display: none;
-`;
-
 const Button = styled.button`
   padding: 8px 16px;
-  display:block;
-  margin:auto;
-  width:200px;
+  display: block;
+  margin: auto;
+  width: 200px;
   border: none;
   background-color: #007bff;
   color: white;
   cursor: pointer;
   margin-top: 10px;
-  
 `;
 
 const ErrorMessage = styled.p`

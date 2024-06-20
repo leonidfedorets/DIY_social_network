@@ -4,7 +4,7 @@ import styled from 'styled-components';
 const AvatarContainer = styled.div`
   display: flex;
   align-items: center;
-  margin-right: 16px; /* Adjust margin as needed */
+  margin-right: 16px;
 `;
 
 const AvatarImg = styled.img`

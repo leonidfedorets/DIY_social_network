@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 
 const MenuContainer = styled.div`
-
   display: inline-block;
   position: fixed;
   top: 4%;
@@ -24,7 +23,7 @@ const DropdownButton = styled.button`
 `;
 
 const DropdownContent = styled.div`
-  display: ${(props) => (props.isOpen ? 'block' : 'none')};
+  display: ${(props) => (props.$isOpen ? 'block' : 'none')};
   position: absolute;
   background-color: #f8f9fa;
   border: 1px solid #ccc;
@@ -45,7 +44,7 @@ const MenuItem = styled.div`
   }
 `;
 
-const Menu = ({ onHomeClick, onCategoriesClick, onUsersClick, onSettingsClick }) => {
+const Menu = ({ onHomeClick, onCategoriesClick, onUsersClick, onSettingsClick, onBackofficeClick }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleMenu = () => {
@@ -55,16 +54,15 @@ const Menu = ({ onHomeClick, onCategoriesClick, onUsersClick, onSettingsClick })
   return (
     <MenuContainer>
       <DropdownButton onClick={toggleMenu}>Menu</DropdownButton>
-      <DropdownContent isOpen={isOpen}>
+      <DropdownContent $isOpen={isOpen}>
         <MenuItem onClick={() => { onHomeClick(); setIsOpen(false); }}>Home</MenuItem>
         <MenuItem onClick={() => { onCategoriesClick(); setIsOpen(false); }}>Categories</MenuItem>
         <MenuItem onClick={() => { onUsersClick(); setIsOpen(false); }}>Users</MenuItem>
         <MenuItem onClick={() => { onSettingsClick(); setIsOpen(false); }}>Settings</MenuItem>
+        <MenuItem onClick={() => { onBackofficeClick(); setIsOpen(false); }}>Backoffice</MenuItem>
       </DropdownContent>
     </MenuContainer>
   );
 };
 
 export default Menu;
-
-

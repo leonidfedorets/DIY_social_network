@@ -16,7 +16,6 @@ const StyledButton = styled.button`
 
 const LogoutButton = ({ onLogout }) => {
   const handleLogout = () => {
-    // Call the onLogout function when clicked
     onLogout();
   };
 
@@ -24,3 +23,4 @@ const LogoutButton = ({ onLogout }) => {
 };
 
 export default LogoutButton;
+
