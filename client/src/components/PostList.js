@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import { FaRegThumbsUp, FaRegHeart, FaRegLaugh, FaRegAngry } from 'react-icons/fa';
 import Avatar from './Avatar';
 import EditModal from './EditModal';
+import { sanitizeHtml } from '../utils/sanitizeHtml';
 
 const List = styled.ul`
   margin-top: 20px;
@@ -156,6 +157,10 @@ const PostList = ({ user }) => {
       const response = await axios.post(`http://localhost:4000/api/posts/${postId}/react`, {
         reaction,
         user: username,
+      }, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
       });
       const updatedPosts = posts.map((post) => {
         if (post._id === postId) {
@@ -180,6 +185,10 @@ const PostList = ({ user }) => {
       const response = await axios.put(`http://localhost:4000/api/posts/${postId}`, {
         ...updatedData,
         user: username,
+      }, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
       });
       console.log('Post updated successfully:', response.data);
       setPosts(posts.map((post) => (post._id === postId ? response.data : post)));
@@ -192,7 +201,11 @@ const PostList = ({ user }) => {
 
   const handleDeleteClick = async (postId) => {
     try {
-      await axios.delete(`http://localhost:4000/api/posts/${postId}`);
+      await axios.delete(`http://localhost:4000/api/posts/${postId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
       setPosts(posts.filter((post) => post._id !== postId));
       console.success('Post deleted successfully');
     } catch (error) {
@@ -229,8 +242,8 @@ const PostList = ({ user }) => {
               <PostHeader>
                 <PostText>
                   <PostTitle>{post.title}</PostTitle>
-                  <PostDescription dangerouslySetInnerHTML={{ __html: post.description }} />
-                  <PostDescription dangerouslySetInnerHTML={{ __html: post.instructions }} />
+                  <PostDescription dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.description) }} />
+                  <PostDescription dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.instructions) }} />
                 </PostText>
               </PostHeader>
               {user && user.username === post.username && (

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { useAuth } from './context/AuthContext';
 import AuthContainer from './components/AuthContainer';
 import styled from 'styled-components';
 import PostForm from './components/PostForm';
@@ -111,49 +111,47 @@ const App = () => {
 
   return (
     <AppContainer>
-      <AuthProvider>
-        <ErrorBoundary>
-          <AuthContainer>
-            <Menu
-              onHomeClick={handleHomeClick}
-              onCategoriesClick={handleCategoriesClick}
-              onUsersClick={handleUsersClick}
-              onSettingsClick={handleSettingsClick}
-              onBackofficeClick={handleBackofficeClick}
-            />
-            {user ? (
-              <>
-                <Avatar username={user.username} />
-                <LogoutButton onLogout={handleLogout} />
-              </>
-            ) : (
-              <>
-                <Button onClick={toggleLogin}>Login</Button>
-                <Button onClick={toggleRegister}>Register</Button>
-              </>
-            )}
-            {showLogin && <LoginPopup onClose={toggleLogin} />}
-            {showRegister && <RegisterPopup onClose={toggleRegister} />}
-          </AuthContainer>
-          <MainContent>
-            {!loading && (
-              <>
-                {showUsers && <Users />}
-                {showBackoffice && user?.role === 'admin' && <Backoffice user={user} />}
-                {!showUsers && !showBackoffice && (
-                  <>
-                    <PostForm username={user ? user.username : null} onPostSubmit={handlePostSubmit} />
-                    <div style={{ marginTop: '20px' }}>
-                      <PostList user={user} />
-                    </div>
-                  </>
-                )}
-              </>
-            )}
-          </MainContent>
-          <Footer />
-        </ErrorBoundary>
-      </AuthProvider>
+      <ErrorBoundary>
+        <AuthContainer>
+          <Menu
+            onHomeClick={handleHomeClick}
+            onCategoriesClick={handleCategoriesClick}
+            onUsersClick={handleUsersClick}
+            onSettingsClick={handleSettingsClick}
+            onBackofficeClick={handleBackofficeClick}
+          />
+          {user ? (
+            <>
+              <Avatar username={user.username} />
+              <LogoutButton onLogout={handleLogout} />
+            </>
+          ) : (
+            <>
+              <Button onClick={toggleLogin}>Login</Button>
+              <Button onClick={toggleRegister}>Register</Button>
+            </>
+          )}
+          {showLogin && <LoginPopup onClose={toggleLogin} />}
+          {showRegister && <RegisterPopup onClose={toggleRegister} />}
+        </AuthContainer>
+        <MainContent>
+          {!loading && (
+            <>
+              {showUsers && <Users />}
+              {showBackoffice && user?.role === 'admin' && <Backoffice user={user} />}
+              {!showUsers && !showBackoffice && (
+                <>
+                  <PostForm username={user ? user.username : null} onPostSubmit={handlePostSubmit} />
+                  <div style={{ marginTop: '20px' }}>
+                    <PostList user={user} />
+                  </div>
+                </>
+              )}
+            </>
+          )}
+        </MainContent>
+        <Footer />
+      </ErrorBoundary>
      
     </AppContainer>
   );

@@ -3,7 +3,6 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const cookieParser = require('cookie-parser');
-const authMiddleware = require('./middleware/authMiddleware');
 
 dotenv.config();
 
@@ -27,12 +26,5 @@ db.once('open', () => {
 
 app.use('/api/posts', require('./routes/post'));
 app.use('/api/users', require('./routes/userRoutes'));
-
-app.use('/api/users/check-auth', authMiddleware);
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
 
 module.exports = app;

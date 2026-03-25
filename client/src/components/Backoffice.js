@@ -40,7 +40,11 @@ const Backoffice = ({ user }) => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get('http://localhost:4000/api/users/all');
+        const response = await axios.get('http://localhost:4000/api/users/all', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
         setUsers(response.data);
       } catch (error) {
         console.error('Error fetching users' );
@@ -52,7 +56,11 @@ const Backoffice = ({ user }) => {
 
   const handleRoleChange = async (userId, newRole) => {
     try {
-      await axios.put(`http://localhost:4000/api/users/${userId}/role`, { role: newRole });
+      await axios.put(`http://localhost:4000/api/users/${userId}/role`, { role: newRole }, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
       setUsers(users.map(user => user._id === userId ? { ...user, role: newRole } : user));
       console.success('Role updated successfully');
     } catch (error) {
@@ -63,7 +71,11 @@ const Backoffice = ({ user }) => {
   const handlePermissionChange = async (userId, permission, value) => {
     try {
       const updatedPermissions = { ...users.find(user => user._id === userId).permissions, [permission]: value };
-      await axios.put(`http://localhost:4000/api/users/${userId}/permissions`, { permissions: updatedPermissions });
+      await axios.put(`http://localhost:4000/api/users/${userId}/permissions`, { permissions: updatedPermissions }, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
       setUsers(users.map(user => user._id === userId ? { ...user, permissions: updatedPermissions } : user));
       console.success('Permissions updated successfully');
     } catch (error) {
