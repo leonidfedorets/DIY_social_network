@@ -28,7 +28,11 @@ const Users = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get('http://localhost:4000/api/users/all');
+        const response = await axios.get('http://localhost:4000/api/users/all', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
         setUsers(response.data);
       } catch (error) {
         console.error('Error fetching users:', error);
@@ -40,7 +44,11 @@ const Users = () => {
 
   const handleRoleChange = async (userId, newRole) => {
     try {
-      const response = await axios.put(`http://localhost:4000/api/users/update-role/${userId}`, { role: newRole });
+      const response = await axios.put(`http://localhost:4000/api/users/${userId}/role`, { role: newRole }, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
       console.log('Role updated successfully:', response.data);
       setUsers(users.map(user => user._id === userId ? { ...user, role: newRole } : user));
     } catch (error) {
@@ -81,4 +89,3 @@ const Users = () => {
 };
 
 export default Users;
-
