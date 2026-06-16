@@ -1,133 +1,187 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import styled from 'styled-components';
-import { FaRegThumbsUp, FaRegHeart, FaRegLaugh, FaRegAngry } from 'react-icons/fa';
+import { FiThumbsUp, FiHeart, FiSmile, FiFrown, FiEdit2, FiTrash2, FiClock } from 'react-icons/fi';
 import Avatar from './Avatar';
 import EditModal from './EditModal';
 import { sanitizeHtml } from '../utils/sanitizeHtml';
+import api from '../utils/api';
 
-const List = styled.ul`
-  margin-top: 20px;
-`;
+const Section = styled.section``;
 
-const ListItem = styled.li`
-  padding: 10px;
-  border: 1px solid #ccc;
-  background-color: #f9f9f9;
-  margin-bottom: 10px;
-  display: flex;
-  justify-content: space-between;
-`;
-
-const PostContent = styled.div`
-  display: flex;
-  flex-direction: column;
-`;
-
-const PostHeader = styled.div`
+const SectionTitle = styled.h3`
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 20px;
   display: flex;
   align-items: center;
-  width: 1000px;
-`;
+  gap: 8px;
 
-const PostText = styled.div`
-  margin-left: 10px;
-`;
-
-const PostTitle = styled.h3`
-  margin: 0;
-`;
-
-const PostDescription = styled.div`
-  margin: 5px 0;
-  img {
-    max-width: 100%;
-    height: auto;
+  &::before {
+    content: '';
+    display: block;
+    width: 4px;
+    height: 20px;
+    background: linear-gradient(135deg, #7c3aed, #3b82f6);
+    border-radius: 2px;
   }
 `;
 
-const ReactionsContainer = styled.div`
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  width: 200px;
+const Card = styled.article`
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 16px;
+  transition: var(--transition);
+  animation: fadeIn 0.3s ease;
+
+  &:hover {
+    border-color: rgba(124, 58, 237, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    transform: translateY(-1px);
+  }
 `;
 
-const ReactionButton = styled.button`
-  background-color: ${(props) => (props.selected ? '#007bff' : '#f9f9f9')};
-  color: ${(props) => (props.selected ? 'white' : '#007bff')};
-  border: 1px solid #007bff;
-  padding: 5px;
-  border-radius: 5px;
-  cursor: pointer;
+const CardHeader = styled.div`
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 60px;
-  height: 30px;
-  margin-left: 5px;
+  justify-content: space-between;
+  margin-bottom: 16px;
 `;
 
-const ReactionCounter = styled.span`
-  font-size: 14px;
-  color: #666;
-  margin-left: 5px;
+const AuthorInfo = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
 `;
 
 const TimeStamp = styled.span`
-  font-size: 12px;
-  color: #999;
-`;
-
-const AvatarContainer = styled.div`
+  font-size: 0.75rem;
+  color: var(--text-muted);
   display: flex;
   align-items: center;
-  width: 50px;
+  gap: 4px;
 `;
 
-const PaginationContainer = styled.div`
+const PostTitle = styled.h2`
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 10px;
+`;
+
+const PostBody = styled.div`
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.7;
+  margin-bottom: 10px;
+
+  img { max-width: 100%; border-radius: var(--radius-sm); margin: 8px 0; }
+  p { margin-bottom: 8px; }
+  h1, h2, h3 { color: var(--text-primary); margin: 12px 0 6px; }
+  ul, ol { padding-left: 20px; }
+`;
+
+const Divider = styled.hr`
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 16px 0;
+`;
+
+const CardFooter = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+`;
+
+const Reactions = styled.div`
+  display: flex;
+  gap: 8px;
+`;
+
+const ReactionBtn = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1px solid ${p => p.$active ? 'var(--accent-primary)' : 'var(--border)'};
+  background: ${p => p.$active ? 'rgba(124,58,237,0.15)' : 'transparent'};
+  color: ${p => p.$active ? 'var(--accent-primary)' : 'var(--text-muted)'};
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+
+  &:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+    background: rgba(124, 58, 237, 0.1);
+    transform: scale(1.05);
+  }
+`;
+
+const Actions = styled.div`
+  display: flex;
+  gap: 8px;
+`;
+
+const ActionBtn = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: var(--transition);
+
+  &:hover { color: ${p => p.$danger ? 'var(--danger)' : 'var(--text-primary)'}; border-color: ${p => p.$danger ? 'var(--danger)' : 'var(--accent-primary)'}; }
+`;
+
+const Pagination = styled.div`
   display: flex;
   justify-content: center;
-  margin-top: 20px;
+  gap: 8px;
+  margin-top: 24px;
 `;
 
-const PaginationButton = styled.button`
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 5px 10px;
-  margin: 0 5px;
-  border-radius: 5px;
+const PageBtn = styled.button`
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  border: 1px solid ${p => p.$active ? 'var(--accent-primary)' : 'var(--border)'};
+  background: ${p => p.$active ? 'var(--accent-primary)' : 'transparent'};
+  color: ${p => p.$active ? 'white' : 'var(--text-secondary)'};
+  font-size: 0.875rem;
+  font-weight: 600;
   cursor: pointer;
+  transition: var(--transition);
+
+  &:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
 `;
 
-const EditButton = styled.button`
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
-  height: 35px;
-  width: 60px;
-  display: flex;
-  margin: 5px;
+const Empty = styled.div`
+  text-align: center;
+  padding: 48px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
 `;
 
-const DeleteButton = styled.button`
-  background-color: #dc3545;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
-  height: 35px;
-  width: 60px;
-  display: flex;
-  margin: 5px;
-`;
+const REACTION_MAP = [
+  { key: 'like', icon: <FiThumbsUp size={13} /> },
+  { key: 'love', icon: <FiHeart size={13} /> },
+  { key: 'laugh', icon: <FiSmile size={13} /> },
+  { key: 'angry', icon: <FiFrown size={13} /> },
+];
 
-const PostList = ({ user }) => {
+const PostList = ({ user, externalPosts }) => {
   const [posts, setPosts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [editPostId, setEditPostId] = useState(null);
@@ -136,168 +190,134 @@ const PostList = ({ user }) => {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const response = await axios.get('http://localhost:4000/api/posts');
+        const response = await api.get('/api/posts');
         setPosts(response.data);
-      } catch (error) {
-        console.error('Error fetching posts:', error);
-        
+      } catch (err) {
+        console.error('Error fetching posts:', err);
       }
     };
-
     fetchPosts();
   }, []);
 
-  const indexOfLastPost = currentPage * postsPerPage;
-  const indexOfFirstPost = indexOfLastPost - postsPerPage;
-  const currentPosts = posts.slice(indexOfFirstPost, indexOfLastPost);
+  useEffect(() => {
+    if (externalPosts?.length > 0) {
+      setPosts(prev => {
+        const ids = new Set(prev.map(p => p._id));
+        const newOnes = externalPosts.filter(p => !ids.has(p._id));
+        return [...newOnes, ...prev];
+      });
+    }
+  }, [externalPosts]);
 
   const handleReaction = async (postId, reaction) => {
+    if (!user) return;
     try {
-      const username = user && user.username;
-      const response = await axios.post(`http://localhost:4000/api/posts/${postId}/react`, {
-        reaction,
-        user: username,
-      }, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-      const updatedPosts = posts.map((post) => {
-        if (post._id === postId) {
-          return {
-            ...post,
-            reactions: response.data.reactions,
-          };
-        }
-        return post;
-      });
-      setPosts(updatedPosts);
-      console.success('Reaction added');
-    } catch (error) {
-      console.error('Error reacting to post:', error);
-      
+      const response = await api.post(`/api/posts/${postId}/react`, { reaction, user: user.username });
+      setPosts(posts.map(p => p._id === postId ? { ...p, reactions: response.data.reactions } : p));
+    } catch (err) {
+      console.error('Error reacting:', err);
     }
   };
 
-  const postUpdate = async (postId, updatedData) => {
+  const handleDelete = async (postId) => {
+    if (!window.confirm('Delete this post?')) return;
     try {
-      const username = user && user.username;
-      const response = await axios.put(`http://localhost:4000/api/posts/${postId}`, {
-        ...updatedData,
-        user: username,
-      }, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-      console.log('Post updated successfully:', response.data);
-      setPosts(posts.map((post) => (post._id === postId ? response.data : post)));
-      console.success('Post updated successfully');
-    } catch (error) {
-      console.error('Error updating post:', error);
-      
+      await api.delete(`/api/posts/${postId}`);
+      setPosts(posts.filter(p => p._id !== postId));
+    } catch (err) {
+      console.error('Error deleting:', err);
     }
   };
 
-  const handleDeleteClick = async (postId) => {
-    try {
-      await axios.delete(`http://localhost:4000/api/posts/${postId}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-      setPosts(posts.filter((post) => post._id !== postId));
-      console.success('Post deleted successfully');
-    } catch (error) {
-      
-      console.error('Error deleting post');
-    }
+  const handlePostUpdate = (updatedPost) => {
+    setPosts(posts.map(p => p._id === updatedPost._id ? updatedPost : p));
   };
 
-  const getReactionCount = (postId, reaction) => {
-    const post = posts.find((post) => post._id === postId);
-    return post ? (post.reactions ? post.reactions.filter((r) => r === reaction).length : 0) : 0;
-  };
+  const countReaction = (post, reaction) =>
+    post.reactions ? post.reactions.filter(r => r === reaction).length : 0;
 
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
-
-  const handleEditClick = (postId) => {
-    setEditPostId(postId);
-  };
-
-  const handleCloseEditModal = () => {
-    setEditPostId(null);
-  };
+  const totalPages = Math.ceil(posts.length / postsPerPage);
+  const currentPosts = posts.slice((currentPage - 1) * postsPerPage, currentPage * postsPerPage);
 
   return (
-    <div>
-      <h2>Posts</h2>
-      <List>
-        {currentPosts.map((post) => (
-          <ListItem key={post._id}>
-            <AvatarContainer>
-              <Avatar username={post.username} />
-            </AvatarContainer>
-            <PostContent>
-              <PostHeader>
-                <PostText>
-                  <PostTitle>{post.title}</PostTitle>
-                  <PostDescription dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.description) }} />
-                  <PostDescription dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.instructions) }} />
-                </PostText>
-              </PostHeader>
-              {user && user.username === post.username && (
-                <>
-                  <EditButton onClick={() => handleEditClick(post._id)}>Edit</EditButton>
-                  <DeleteButton onClick={() => handleDeleteClick(post._id)}>Delete</DeleteButton>
-                </>
+    <Section>
+      <SectionTitle>Community Projects</SectionTitle>
+      {currentPosts.length === 0 ? (
+        <Empty>No projects yet. Be the first to share something!</Empty>
+      ) : (
+        currentPosts.map(post => (
+          <Card key={post._id}>
+            <CardHeader>
+              <AuthorInfo>
+                <Avatar username={post.username} />
+              </AuthorInfo>
+              <TimeStamp>
+                <FiClock size={11} />
+                {new Date(post.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+              </TimeStamp>
+            </CardHeader>
+
+            <PostTitle>{post.title}</PostTitle>
+            {post.description && (
+              <PostBody dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.description) }} />
+            )}
+            {post.instructions && (
+              <>
+                <Divider />
+                <PostBody dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.instructions) }} />
+              </>
+            )}
+
+            <Divider />
+
+            <CardFooter>
+              <Reactions>
+                {REACTION_MAP.map(({ key, icon }) => (
+                  <ReactionBtn
+                    key={key}
+                    $active={post.reactions?.includes(key)}
+                    onClick={() => handleReaction(post._id, key)}
+                    title={key}
+                  >
+                    {icon} {countReaction(post, key) || ''}
+                  </ReactionBtn>
+                ))}
+              </Reactions>
+
+              {(user?.username === post.username || user?.role === 'admin') && (
+                <Actions>
+                  <ActionBtn onClick={() => setEditPostId(post._id)}>
+                    <FiEdit2 size={12} /> Edit
+                  </ActionBtn>
+                  <ActionBtn $danger onClick={() => handleDelete(post._id)}>
+                    <FiTrash2 size={12} /> Delete
+                  </ActionBtn>
+                </Actions>
               )}
-              <TimeStamp>Posted on: {new Date(post.createdAt).toLocaleString()}</TimeStamp>
-            </PostContent>
-            <ReactionsContainer>
-              <ReactionButton
-                selected={post.reactions && post.reactions.includes('like')}
-                onClick={() => handleReaction(post._id, 'like')}
-              >
-                <FaRegThumbsUp />
-                <ReactionCounter>{getReactionCount(post._id, 'like')}</ReactionCounter>
-              </ReactionButton>
-              <ReactionButton
-                selected={post.reactions && post.reactions.includes('love')}
-                onClick={() => handleReaction(post._id, 'love')}
-              >
-                <FaRegHeart />
-                <ReactionCounter>{getReactionCount(post._id, 'love')}</ReactionCounter>
-              </ReactionButton>
-              <ReactionButton
-                selected={post.reactions && post.reactions.includes('laugh')}
-                onClick={() => handleReaction(post._id, 'laugh')}
-              >
-                <FaRegLaugh />
-                <ReactionCounter>{getReactionCount(post._id, 'laugh')}</ReactionCounter>
-              </ReactionButton>
-              <ReactionButton
-                selected={post.reactions && post.reactions.includes('angry')}
-                onClick={() => handleReaction(post._id, 'angry')}
-              >
-                <FaRegAngry />
-                <ReactionCounter>{getReactionCount(post._id, 'angry')}</ReactionCounter>
-              </ReactionButton>
-            </ReactionsContainer>
-          </ListItem>
-        ))}
-      </List>
-      <PaginationContainer>
-        {Array.from({ length: Math.ceil(posts.length / postsPerPage) }, (_, index) => (
-          <PaginationButton key={index} onClick={() => paginate(index + 1)}>
-            {index + 1}
-          </PaginationButton>
-        ))}
-      </PaginationContainer>
-      {editPostId && (
-        <EditModal postId={editPostId} onClose={handleCloseEditModal} onPostUpdate={postUpdate} />
+            </CardFooter>
+          </Card>
+        ))
       )}
-    </div>
+
+      {totalPages > 1 && (
+        <Pagination>
+          {Array.from({ length: totalPages }, (_, i) => (
+            <PageBtn key={i} $active={currentPage === i + 1} onClick={() => setCurrentPage(i + 1)}>
+              {i + 1}
+            </PageBtn>
+          ))}
+        </Pagination>
+      )}
+
+      {editPostId && (
+        <EditModal
+          postId={editPostId}
+          currentUser={user}
+          onClose={() => setEditPostId(null)}
+          onPostUpdate={handlePostUpdate}
+        />
+      )}
+    </Section>
   );
 };
 

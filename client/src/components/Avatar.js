@@ -1,28 +1,38 @@
 import React from 'react';
 import styled from 'styled-components';
 
-const AvatarContainer = styled.div`
+const Container = styled.div`
   display: flex;
   align-items: center;
-  margin-right: 16px;
+  gap: 8px;
 `;
 
-const AvatarImg = styled.img`
-  width: 32px;
-  height: 32px;
+const Img = styled.img`
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  margin-right: 8px;
+  border: 2px solid var(--accent-primary);
+  object-fit: cover;
 `;
 
-const Avatar = ({ username }) => {
-  return (
-    <AvatarContainer>
-      <AvatarImg src={`https://ui-avatars.com/api/?name=${username}`} alt="User Avatar" />
-      <span>{username}</span>
-    </AvatarContainer>
-  );
-};
+const Name = styled.span`
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+
+  @media (max-width: 480px) {
+    display: none;
+  }
+`;
+
+const Avatar = ({ username }) => (
+  <Container>
+    <Img
+      src={`https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=7c3aed&color=fff&bold=true`}
+      alt={username}
+    />
+    <Name>{username}</Name>
+  </Container>
+);
 
 export default Avatar;
-
-
