@@ -1,36 +1,53 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from './context/AuthContext';
-import AuthContainer from './components/AuthContainer';
 import styled from 'styled-components';
 import PostForm from './components/PostForm';
 import PostList from './components/PostList';
-import Avatar from './components/Avatar';
-import LogoutButton from './components/LogoutButton';
 import LoginPopup from './components/LoginPopup';
 import RegisterPopup from './components/RegisterPopup';
-import Button from './components/Button';
-import Menu from './components/Menu';
+import Navbar from './components/Menu';
 import Users from './components/Users';
 import Backoffice from './components/Backoffice';
 import Footer from './components/Footer';
 import ErrorBoundary from './components/ErrorBoundary';
-import axios from 'axios';
 import toast from 'react-simple-toasts';
 import 'react-simple-toasts/dist/theme/dark.css';
-import './App.css'
+import './App.css';
 
 const AppContainer = styled.div`
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  font-family: Arial, sans-serif;
 `;
 
-const MainContent = styled.div`
+const MainContent = styled.main`
   flex-grow: 1;
-  padding: 20px;
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 100px 20px 40px;
+  animation: fadeIn 0.4s ease;
 `;
 
+const HeroSection = styled.div`
+  text-align: center;
+  margin-bottom: 48px;
+
+  h1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 800;
+    background: linear-gradient(135deg, #7c3aed, #3b82f6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+  }
+
+  p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+  }
+`;
 
 const App = () => {
   const { user, logout, loading } = useAuth();
@@ -40,16 +57,9 @@ const App = () => {
   const [showUsers, setShowUsers] = useState(false);
   const [posts, setPosts] = useState([]);
 
-  const toggleLogin = () => {
-    setShowLogin(!showLogin);
-    setShowRegister(false);
-    setShowUsers(false);
-    setShowBackoffice(false);
-  };
-
-  const toggleRegister = () => {
-    setShowRegister(!showRegister);
+  const closeAll = () => {
     setShowLogin(false);
+    setShowRegister(false);
     setShowUsers(false);
     setShowBackoffice(false);
   };
@@ -57,102 +67,63 @@ const App = () => {
   const handleLogout = async () => {
     try {
       await logout();
-      toast('Logout successful', { theme: 'dark', className: 'success-toast' });
-    } catch (error) {
+      toast('Logged out successfully', { theme: 'dark', className: 'success-toast' });
+    } catch {
       toast('Error logging out', { theme: 'dark', className: 'error-toast' });
     }
   };
-
-  const handleHomeClick = () => {
-    setShowLogin(false);
-    setShowRegister(false);
-    setShowUsers(false);
-    setShowBackoffice(false);
-  };
-
-  const handleCategoriesClick = () => {
-    // Implement logic for Categories click
-  };
-
-  const handleUsersClick = () => {
-    setShowUsers(true);
-    setShowLogin(false);
-    setShowRegister(false);
-    setShowBackoffice(false);
-  };
-
-  const handleSettingsClick = () => {
-    // Implement logic for Settings click
-  };
-
-  const handleBackofficeClick = () => {
-    setShowBackoffice(true);
-    setShowLogin(false);
-    setShowRegister(false);
-    setShowUsers(false);
-  };
-
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const response = await axios.get('http://localhost:4000/api/posts');
-        setPosts(response.data);
-      } catch (error) {
-        console.error('Error fetching posts:', error);
-      }
-    };
-
-    fetchPosts();
-  }, []);
 
   const handlePostSubmit = (newPost) => {
     setPosts([newPost, ...posts]);
   };
 
+  const isHome = !showUsers && !showBackoffice;
+
   return (
     <AppContainer>
       <ErrorBoundary>
-        <AuthContainer>
-          <Menu
-            onHomeClick={handleHomeClick}
-            onCategoriesClick={handleCategoriesClick}
-            onUsersClick={handleUsersClick}
-            onSettingsClick={handleSettingsClick}
-            onBackofficeClick={handleBackofficeClick}
+        <Navbar
+          user={user}
+          onHomeClick={closeAll}
+          onUsersClick={() => { closeAll(); setShowUsers(true); }}
+          onBackofficeClick={() => { closeAll(); setShowBackoffice(true); }}
+          onLoginClick={() => { closeAll(); setShowLogin(true); }}
+          onRegisterClick={() => { closeAll(); setShowRegister(true); }}
+          onLogout={handleLogout}
+        />
+
+        {showLogin && <LoginPopup onClose={() => setShowLogin(false)} />}
+        {showRegister && (
+          <RegisterPopup
+            onClose={() => setShowRegister(false)}
+            onRegisterSuccess={() => {
+              setShowRegister(false);
+              toast('Registered! Please log in.', { theme: 'dark', className: 'success-toast' });
+            }}
           />
-          {user ? (
-            <>
-              <Avatar username={user.username} />
-              <LogoutButton onLogout={handleLogout} />
-            </>
-          ) : (
-            <>
-              <Button onClick={toggleLogin}>Login</Button>
-              <Button onClick={toggleRegister}>Register</Button>
-            </>
-          )}
-          {showLogin && <LoginPopup onClose={toggleLogin} />}
-          {showRegister && <RegisterPopup onClose={toggleRegister} />}
-        </AuthContainer>
+        )}
+
         <MainContent>
           {!loading && (
             <>
-              {showUsers && <Users />}
-              {showBackoffice && user?.role === 'admin' && <Backoffice user={user} />}
-              {!showUsers && !showBackoffice && (
+              {isHome && (
                 <>
-                  <PostForm username={user ? user.username : null} onPostSubmit={handlePostSubmit} />
-                  <div style={{ marginTop: '20px' }}>
-                    <PostList user={user} />
-                  </div>
+                  <HeroSection>
+                    <h1>Share Your DIY Projects</h1>
+                    <p>Inspire the community with your creativity and craftsmanship</p>
+                  </HeroSection>
+                  <PostForm username={user?.username} onPostSubmit={handlePostSubmit} />
+                  <PostList user={user} externalPosts={posts} />
                 </>
               )}
+              {showUsers && <Users />}
+              {showBackoffice && user?.role === 'admin' && <Backoffice user={user} />}
             </>
           )}
         </MainContent>
+
         <Footer />
       </ErrorBoundary>
-     
     </AppContainer>
   );
 };
