@@ -1,134 +1,80 @@
 import React from 'react';
 import styled from 'styled-components';
-import { FiLinkedin, FiTwitter, FiInstagram, FiMail, FiMapPin, FiPhone } from 'react-icons/fi';
+import { FiLinkedin, FiTwitter, FiInstagram, FiMail, FiMapPin } from 'react-icons/fi';
 
 const FooterEl = styled.footer`
-  background: var(--bg-secondary);
-  border-top: 1px solid var(--border);
-  padding: 48px 24px 24px;
-  margin-top: 80px;
+  background:#0a0908;border-top:1px solid rgba(245,158,11,0.1);padding:56px 24px 28px;margin-top:80px;
+  position:relative;
+  &::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+    background:repeating-linear-gradient(90deg,#f59e0b 0px,#f59e0b 20px,transparent 20px,transparent 28px);
+    opacity:0.5;}
 `;
-
-const Inner = styled.div`
-  max-width: 1100px;
-  margin: 0 auto;
-`;
-
+const Inner = styled.div`max-width:1120px;margin:0 auto;`;
 const Grid = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 40px;
-  margin-bottom: 40px;
-
-  @media (max-width: 640px) {
-    grid-template-columns: 1fr;
-    gap: 28px;
-  }
+  display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:40px;margin-bottom:48px;
+  @media(max-width:768px){grid-template-columns:1fr 1fr;gap:28px;}
+  @media(max-width:480px){grid-template-columns:1fr;}
 `;
-
 const Brand = styled.div`
-  h3 {
-    font-size: 1.2rem;
-    font-weight: 800;
-    background: linear-gradient(135deg, #7c3aed, #3b82f6);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 8px;
-  }
-  p {
-    color: var(--text-muted);
-    font-size: 0.85rem;
-    line-height: 1.6;
-  }
+  h3{font-size:1.2rem;font-weight:900;color:#f59e0b;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+  p{color:#6b5a3e;font-size:0.875rem;line-height:1.7;max-width:260px;}
 `;
-
-const ColTitle = styled.h4`
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-bottom: 16px;
+const ColTitle = styled.h4`font-size:0.75rem;font-weight:700;color:#b8a07a;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:16px;`;
+const Links = styled.div`display:flex;flex-direction:column;gap:10px;`;
+const FootLink = styled.span`color:#6b5a3e;font-size:0.875rem;cursor:pointer;transition:all 0.15s;&:hover{color:#f59e0b;}`;
+const ContactItem = styled.div`display:flex;align-items:center;gap:9px;color:#6b5a3e;font-size:0.875rem;margin-bottom:10px;svg{color:#f59e0b;flex-shrink:0;}`;
+const SocialWrap = styled.div`display:flex;gap:10px;margin-top:4px;`;
+const SLink = styled.a`
+  width:36px;height:36px;border-radius:8px;border:1px solid rgba(245,158,11,0.15);
+  display:flex;align-items:center;justify-content:center;color:#6b5a3e;font-size:1rem;
+  transition:all 0.15s;
+  &:hover{border-color:#f59e0b;color:#f59e0b;background:rgba(245,158,11,0.08);transform:translateY(-2px);}
 `;
-
-const ContactItem = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--text-muted);
-  font-size: 0.85rem;
-  margin-bottom: 10px;
-
-  svg { color: var(--accent-primary); flex-shrink: 0; }
-`;
-
-const SocialLinks = styled.div`
-  display: flex;
-  gap: 12px;
-`;
-
-const SocialLink = styled.a`
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-muted);
-  font-size: 1rem;
-  transition: var(--transition);
-
-  &:hover {
-    border-color: var(--accent-primary);
-    color: var(--accent-primary);
-    background: rgba(124, 58, 237, 0.1);
-    transform: translateY(-2px);
-  }
-`;
-
 const Bottom = styled.div`
-  border-top: 1px solid var(--border);
-  padding-top: 20px;
-  text-align: center;
-  color: var(--text-muted);
-  font-size: 0.8rem;
+  border-top:1px solid rgba(245,158,11,0.08);padding-top:20px;
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
 `;
+const BottomText = styled.span`color:#6b5a3e;font-size:0.78rem;`;
+
+const CAT = ['Building','Construction','IT & Dev','Hobbies','Home Improvement'];
 
 const Footer = () => (
   <FooterEl>
     <Inner>
       <Grid>
         <Brand>
-          <h3>DIY Network</h3>
-          <p>A community platform for sharing DIY projects, tutorials, and creative ideas.</p>
+          <h3>🔨 DIY Network</h3>
+          <p>The community platform for makers, builders, and hobbyists. Share your expertise, learn new skills, and connect with thousands of hands-on creators.</p>
+          <SocialWrap style={{marginTop:16}}>
+            <SLink href="https://www.linkedin.com/in/leonid-fedorets-6b778431/" target="_blank" rel="noreferrer"><FiLinkedin /></SLink>
+            <SLink href="#"><FiTwitter /></SLink>
+            <SLink href="#"><FiInstagram /></SLink>
+          </SocialWrap>
         </Brand>
-
+        <div>
+          <ColTitle>Categories</ColTitle>
+          <Links>{CAT.map(c=><FootLink key={c}>{c}</FootLink>)}</Links>
+        </div>
+        <div>
+          <ColTitle>Platform</ColTitle>
+          <Links>
+            <FootLink>How it works</FootLink>
+            <FootLink>Community guidelines</FootLink>
+            <FootLink>Privacy policy</FootLink>
+            <FootLink>Terms of service</FootLink>
+          </Links>
+        </div>
         <div>
           <ColTitle>Contact</ColTitle>
-          <ContactItem><FiMapPin size={14} /> 8A Pravda Ave, Kyiv, Ukraine</ContactItem>
-          <ContactItem><FiPhone size={14} /> +380 (66) 103-9977</ContactItem>
-          <ContactItem><FiMail size={14} /> leonidfedorets30@gmail.com</ContactItem>
-        </div>
-
-        <div>
-          <ColTitle>Follow Us</ColTitle>
-          <SocialLinks>
-            <SocialLink href="https://www.linkedin.com/in/leonid-fedorets-6b778431/" target="_blank" rel="noreferrer">
-              <FiLinkedin />
-            </SocialLink>
-            <SocialLink href="#"><FiTwitter /></SocialLink>
-            <SocialLink href="#"><FiInstagram /></SocialLink>
-          </SocialLinks>
+          <ContactItem><FiMapPin size={13}/> Kyiv, Ukraine</ContactItem>
+          <ContactItem><FiMail size={13}/> leonidfedorets30@gmail.com</ContactItem>
         </div>
       </Grid>
-
       <Bottom>
-        &copy; {new Date().getFullYear()} DIY Network. All rights reserved.
+        <BottomText>© {new Date().getFullYear()} DIY Network. All rights reserved.</BottomText>
+        <BottomText>Built for makers, by makers 🔨</BottomText>
       </Bottom>
     </Inner>
   </FooterEl>
 );
-
 export default Footer;
