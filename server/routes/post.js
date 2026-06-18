@@ -1,39 +1,41 @@
 const express = require('express');
 const router = express.Router();
-const { createPost, getPosts, getPost, reactToPost, updatePost, deletePost } = require('../controllers/post');
+const {
+  createPost, getPosts, getPost, reactToPost, ratePost,
+  getComments, addComment, deleteComment,
+  updatePost, deletePost, getAllPostsAdmin
+} = require('../controllers/post');
 const multer = require('multer');
 const authMiddleware = require('../middleware/authMiddleware');
 const adminMiddleware = require('../middleware/adminMiddleware');
+const path = require('path');
+const fs = require('fs');
 
-// Multer configuration for handling file uploads
+const uploadsDir = path.join(__dirname, '../uploads');
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/');
-  },
-  filename: function (req, file, cb) {
-    cb(null, file.originalname);
-  },
+  destination: (req, file, cb) => cb(null, uploadsDir),
+  filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname),
 });
 
-const fileFilter = function (req, file, cb) {
-  if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png' || file.mimetype === 'video/mp4') {
-    cb(null, true);
-  } else {
-    cb(new Error('Invalid file type. Only JPEG, PNG, or MP4 files are allowed.'), false);
-  }
+const fileFilter = (req, file, cb) => {
+  const allowed = ['image/jpeg', 'image/png', 'image/webp', 'video/mp4'];
+  cb(null, allowed.includes(file.mimetype));
 };
 
-const upload = multer({
-  storage: storage,
-  limits: { fileSize: 1024 * 1024 * 5 }, // Limit file size to 5MB
-  fileFilter: fileFilter,
-});
+const upload = multer({ storage, limits: { fileSize: 1024 * 1024 * 10 }, fileFilter });
 
-router.post('/', authMiddleware, upload.single('file'), createPost); // Ensure authenticated users can create posts
-router.get('/', getPosts); // Public route to get posts
-router.get('/:postId', getPost); // Public route to get a single post
-router.post('/:postId/react', authMiddleware, reactToPost); // Ensure authenticated users can react to posts
-router.put('/:postId', authMiddleware, upload.single('file'), updatePost); // Ensure authenticated users can update posts
-router.delete('/:postId', authMiddleware, adminMiddleware, deletePost); // Ensure only admins can delete posts
+router.get('/', getPosts);
+router.get('/admin/all', authMiddleware, adminMiddleware, getAllPostsAdmin);
+router.get('/:postId', getPost);
+router.post('/', authMiddleware, upload.single('file'), createPost);
+router.put('/:postId', authMiddleware, upload.single('file'), updatePost);
+router.delete('/:postId', authMiddleware, adminMiddleware, deletePost);
+router.post('/:postId/react', authMiddleware, reactToPost);
+router.post('/:postId/rate', authMiddleware, ratePost);
+router.get('/:postId/comments', getComments);
+router.post('/:postId/comments', authMiddleware, addComment);
+router.delete('/:postId/comments/:commentId', authMiddleware, deleteComment);
 
 module.exports = router;
