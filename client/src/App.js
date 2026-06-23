@@ -9,6 +9,7 @@ import Navbar from './components/Menu';
 import Users from './components/Users';
 import Backoffice from './components/Backoffice';
 import Footer from './components/Footer';
+import InfoPage from './components/InfoPage';
 import ErrorBoundary from './components/ErrorBoundary';
 import toast from 'react-simple-toasts';
 import 'react-simple-toasts/dist/theme/dark.css';
@@ -187,8 +188,12 @@ const App = () => {
   const [showUsers, setShowUsers] = useState(false);
   const [posts, setPosts] = useState([]);
   const [activeCategory, setActiveCategory] = useState('all');
+  const [infoPage, setInfoPage] = useState(null);
 
-  const closeAll = () => { setShowLogin(false); setShowRegister(false); setShowUsers(false); setShowBackoffice(false); };
+  const INFO_PAGES = ['how-it-works','guidelines','privacy','terms'];
+  const CAT_KEYS = ['building','construction','it-dev','hobbies','home-improvement'];
+
+  const closeAll = () => { setShowLogin(false); setShowRegister(false); setShowUsers(false); setShowBackoffice(false); setInfoPage(null); };
 
   const handleLogout = async () => {
     try { await logout(); toast('Logged out', { theme: 'dark', className: 'success-toast' }); }
@@ -196,7 +201,13 @@ const App = () => {
   };
 
   const handlePostSubmit = (newPost) => setPosts([newPost, ...posts]);
-  const isHome = !showUsers && !showBackoffice;
+  const isHome = !showUsers && !showBackoffice && !infoPage;
+
+  const handleNavigate = (key) => {
+    closeAll();
+    if (INFO_PAGES.includes(key)) { setInfoPage(key); return; }
+    if (CAT_KEYS.includes(key)) { setActiveCategory(key); return; }
+  };
 
   return (
     <AppContainer>
@@ -223,6 +234,7 @@ const App = () => {
           <MainContent>
             {showUsers && <div style={{maxWidth:920,margin:'0 auto',padding:'100px 20px 40px'}}><Users /></div>}
             {showBackoffice && user?.role === 'admin' && <div style={{maxWidth:1100,margin:'0 auto',padding:'100px 20px 40px'}}><Backoffice user={user} /></div>}
+            {infoPage && <InfoPage page={infoPage} />}
 
             {isHome && (
               <>
@@ -283,7 +295,7 @@ const App = () => {
                       <SectionDesc>From concrete foundations to code — we cover every form of hands-on creativity.</SectionDesc>
                       <CatGrid>
                         {CATEGORIES.map(c => (
-                          <CatCard key={c.key} color={c.color} bg={c.bg} onClick={() => setShowRegister(true)}>
+                          <CatCard key={c.key} color={c.color} bg={c.bg} onClick={() => { if(user){ setActiveCategory(c.key); } else { setShowRegister(true); } }}>
                             <span className="ci">{c.icon}</span>
                             <span className="cn">{c.name}</span>
                             <span className="cc">{c.count}</span>
@@ -316,7 +328,7 @@ const App = () => {
             )}
           </MainContent>
         )}
-        <Footer />
+        <Footer onNavigate={handleNavigate} />
       </ErrorBoundary>
     </AppContainer>
   );
