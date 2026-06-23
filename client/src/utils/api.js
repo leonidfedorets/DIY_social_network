@@ -1,7 +1,12 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL ||
-  (process.env.NODE_ENV === 'production' ? '' : 'http://localhost:4000');
+// Evaluated at runtime in the browser — not affected by REACT_APP_API_URL baked at build time.
+// In production (any Vercel URL), use relative paths so API is always same-origin.
+// In local dev, proxy to the Express server on port 4000.
+const API_URL =
+  typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+    ? ''
+    : 'http://localhost:4000';
 
 const api = axios.create({
   baseURL: API_URL,
